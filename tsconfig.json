@@ -7,8 +7,12 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
-    "isolatedModules": true
+    "isolatedModules": true,
+    "jsx": "react-native",               // ← NECESARIO para JSX
+    "lib": ["es2015", "dom"],           // ← NECESARIO para Promise y más
+    "types": ["react", "react-native"]  // ← NECESARIO para tipos
   },
   "include": ["**/*.ts", "**/*.tsx"],
   "exclude": ["node_modules", "babel.config.js"]
 }
+

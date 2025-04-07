@@ -2,7 +2,7 @@
 import React, { useContext, useState } from 'react';
 import { View, Text, Button, StyleSheet, TextInput, Switch, Alert, Image } from 'react-native';
 import { AuthContext } from '../context/AuthContext';
-import { updateUserName, updateUserTheme } from '../lib/userFunctions'; // Funciones para actualizaciones reales
+import { updateUserName, updateUserTheme } from '../lib/userFunctions';
 
 export default function SettingsScreen() {
   const { user, logout, setUser } = useContext(AuthContext);

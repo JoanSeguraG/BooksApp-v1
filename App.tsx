@@ -1,23 +1,21 @@
 import 'react-native-url-polyfill/auto';
-import { useState, useEffect } from 'react';
-import { supabase } from './lib/supabase';
+import { View, Text, TextInput, Button, Alert, ActivityIndicator } from 'react-native';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import Auth from './components/Auth';
-import { View, Text, TextInput, Button, Alert } from 'react-native';
-import { Session } from '@supabase/supabase-js';
+import { useState } from 'react';
+import { supabase } from './lib/supabase';
 
-export default function App() {
-  const [session, setSession] = useState<Session | null>(null);
+function MainApp() {
+  const { user, loading } = useAuth();
   const [newPassword, setNewPassword] = useState('');
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-    });
-
-    supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-  }, []);
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
 
   async function updatePassword() {
     const { error } = await supabase.auth.updateUser({ password: newPassword });
@@ -31,12 +29,12 @@ export default function App() {
   }
 
   return (
-    <View>
-      {!session ? (
+    <View style={{ padding: 20 }}>
+      {!user ? (
         <Auth />
       ) : (
         <View>
-          <Text>Usuari: {session.user?.email}</Text>
+          <Text>Usuari: {user.email}</Text>
           <TextInput
             placeholder="Nova contrasenya"
             secureTextEntry
@@ -47,5 +45,13 @@ export default function App() {
         </View>
       )}
     </View>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <MainApp />
+    </AuthProvider>
   );
 }

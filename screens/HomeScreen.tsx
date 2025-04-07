@@ -1,15 +1,18 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, Button, StyleSheet } from 'react-native';
 
-const HomeScreen = () => {
+const HomeScreen = ({ navigation }: any) => {
   return (
     <View style={styles.container}>
       <Text>Home Screen</Text>
+      {/* Aquí añadimos el botón para navegar a la pantalla de favoritos */}
+      <Button
+        title="Ver Favoritos"
+        onPress={() => navigation.navigate('Favorites')}
+      />
     </View>
   );
 };
-
-export default HomeScreen;
 
 const styles = StyleSheet.create({
   container: {
@@ -18,3 +21,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 });
+
+export default HomeScreen;

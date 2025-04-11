@@ -1,40 +1,48 @@
 import 'react-native-url-polyfill/auto';
-import { useState, useEffect } from 'react';
-import { supabase } from './lib/supabase';
+import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+import { View, ActivityIndicator } from 'react-native';
+import { useAuth, AuthProvider } from './context/AuthContext';
 import Auth from './components/Auth';
 import HomeScreen from './screens/HomeScreen';
-import { Session } from '@supabase/supabase-js';
+import SignUp from './screens/SignUp';
+import Profile from './screens/Profile';  // Ruta a la página de perfil
 
 const Stack = createStackNavigator();
 
-export default function App() {
-  const [session, setSession] = useState<Session | null>(null);
+function AppNavigator() {
+  const { session, initializing } = useAuth();
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
+  if (initializing) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
+  }
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator 
-        initialRouteName={session ? 'Home' : 'Auth'} 
-        screenOptions={{
-          headerShown: false // Ocultar el encabezado en todas las pantallas
-        }}
-      >
-        <Stack.Screen name="Auth" component={Auth} />
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      {session ? (
         <Stack.Screen name="Home" component={HomeScreen} />
-      </Stack.Navigator>
-    </NavigationContainer>
+      ) : (
+        <>
+          <Stack.Screen name="Auth" component={Auth} />
+          <Stack.Screen name="SignUp" component={SignUp} />
+          
+        </>
+      )}
+    </Stack.Navigator>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <NavigationContainer>
+        <AppNavigator />
+      </NavigationContainer>
+    </AuthProvider>
   );
 }

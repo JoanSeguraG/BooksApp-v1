@@ -1,136 +1,115 @@
 import React, { useState } from 'react';
-import { Alert, StyleSheet, View, Text } from 'react-native';
+import { View, Text, TextInput, StyleSheet } from 'react-native'; // Asegúrate de importar StyleSheet
+import { Button } from '@rneui/themed'; // Asegúrate de que estás importando Button de @rneui/themed
 import { supabase } from '../lib/supabase';
-import { Button, Input } from '@rneui/themed';
-import { useNavigation } from '@react-navigation/native'; // Importa el hook de navegación
+import { useNavigation } from '@react-navigation/native';
 
 export default function Auth() {
+  const navigation = useNavigation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [signInError, setSignInError] = useState('');
-  
-  const navigation = useNavigation(); // Usamos el hook de navegación
+  const [errorMsg, setErrorMsg] = useState('');
 
-  async function signInWithEmail() {
-    setSignInError('');
+  const handleLogin = async () => {
+    setErrorMsg('');
 
     // Validación de campos vacíos
     if (!email || !password) {
-      setSignInError('Please fill out all fields.');
+      setErrorMsg('Por favor, ingresa tu correo y contraseña.');
       return;
     }
 
     setLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-
-    if (error) {
-      setSignInError(error.message);
-    } else {
-      // Si el inicio de sesión es exitoso, utilizamos reset para que no puedan volver a la pantalla de Auth
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'Home' }]  // Reemplaza la pila con la pantalla "Home"
+    try {
+      // Intentar iniciar sesión
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
       });
+
+      if (error) {
+        setErrorMsg(error.message);
+      } else {
+        // Verificar si el correo está verificado
+        if (!data?.user?.email_confirmed_at) {
+          setErrorMsg('Debes verificar tu correo antes de iniciar sesión.');
+        } else {
+          // Si el correo está verificado, navegar a la pantalla principal
+          navigation.navigate('Home');
+        }
+      }
+    } catch (error) {
+      setErrorMsg('Error al iniciar sesión');
     }
 
     setLoading(false);
-  }
-
-  async function signUpWithEmail() {
-    setLoading(true);
-    const { data: { session }, error } = await supabase.auth.signUp({ email, password });
-    if (error) Alert.alert(error.message);
-    if (!session) Alert.alert('Please check your email to verify your account!');
-    setLoading(false);
-  }
-
-  async function resetPassword() {
-    if (!email) {
-      Alert.alert('Please enter an email address!');
-      return;
-    }
-
-    setLoading(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(email);
-    if (error) {
-      Alert.alert('Error', error.message);
-    } else {
-      Alert.alert('Email sent', 'Please check your email to reset your password.');
-    }
-    setLoading(false);
-  }
+  };
 
   return (
     <View style={styles.container}>
-      <View style={[styles.verticallySpaced, styles.mt20]}>
-        <Input
-          label="Email"
-          leftIcon={{ type: 'font-awesome', name: 'envelope' }}
-          onChangeText={setEmail}
-          value={email}
-          placeholder="email@address.com"
-          autoCapitalize="none"
-        />
-      </View>
-      <View style={styles.verticallySpaced}>
-        <Input
-          label="Password"
-          leftIcon={{ type: 'font-awesome', name: 'lock' }}
-          onChangeText={setPassword}
-          value={password}
-          secureTextEntry={true}
-          placeholder="Password"
-          autoCapitalize="none"
-        />
-      </View>
-      <View style={[styles.verticallySpaced, styles.mt20]}>
-        <Button
-          title="Sign in"
-          disabled={loading}
-          onPress={signInWithEmail}
-          loading={loading}
-        />
-        {signInError ? <Text style={styles.errorText}>{signInError}</Text> : null}
-      </View>
-      <View style={styles.verticallySpaced}>
-        <Button
-          title="Sign up"
-          disabled={loading}
-          onPress={signUpWithEmail}
-          loading={loading}
-        />
-      </View>
-      <View style={styles.verticallySpaced}>
-        <Button
-          title="Forgot Password?"
-          disabled={loading}
-          onPress={resetPassword}
-          loading={loading}
-        />
-      </View>
+      <Text style={styles.title}>Iniciar sesión</Text>
+
+      <TextInput
+        placeholder="Email"
+        value={email}
+        onChangeText={setEmail}
+        style={styles.input}
+      />
+      <TextInput
+        placeholder="Contraseña"
+        value={password}
+        onChangeText={setPassword}
+        secureTextEntry
+        style={styles.input}
+      />
+
+      {errorMsg ? <Text style={styles.errorText}>{errorMsg}</Text> : null}
+
+      <Button
+        title="Iniciar sesión"
+        onPress={handleLogin}
+        loading={loading}
+        buttonStyle={styles.button} // Usar buttonStyle en lugar de style
+      />
+
+      {/* Botón de Sign Up */}
+      <Button
+        title="¿No tienes una cuenta? Regístrate"
+        onPress={() => navigation.navigate('SignUp')}
+        containerStyle={styles.signupButtonContainer} // Usar containerStyle para la posición
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 40,
-    padding: 12,
+    padding: 24,
+    flex: 1,
+    justifyContent: 'center'
   },
-  verticallySpaced: {
-    paddingTop: 4,
-    paddingBottom: 4,
-    alignSelf: 'stretch',
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 24,
+    alignSelf: 'center'
   },
-  mt20: {
-    marginTop: 20,
+  input: {
+    borderWidth: 1,
+    padding: 10,
+    marginBottom: 12
   },
   errorText: {
     color: 'red',
-    marginTop: 8,
-    marginLeft: 10,
-    fontSize: 14,
+    marginBottom: 12,
+    marginLeft: 10
   },
+  button: {
+    marginTop: 12, // Estilo para el botón "Iniciar sesión"
+  },
+  signupButtonContainer: {
+    marginTop: 20, // Estilo para el contenedor del botón "Regístrate"
+  }
 });

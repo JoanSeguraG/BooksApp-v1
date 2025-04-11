@@ -1,109 +1,61 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, Alert, StyleSheet } from 'react-native';
-import { supabase } from '../lib/supabase'; // Asegúrate de tener esta ruta configurada correctamente
+import { View, Text, StyleSheet, Alert } from 'react-native';
+import { Button, Input } from '@rneui/themed';
+import { supabase } from '../lib/supabase';
 
-const SignUp = () => {
-  const [username, setUsername] = useState<string>('');
-  const [email, setEmail] = useState<string>('');
-  const [password, setPassword] = useState<string>('');
-  const [repeatPassword, setRepeatPassword] = useState<string>('');
-  const [loading, setLoading] = useState<boolean>(false);
+export default function SignUp() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleSignUp = async () => {
-    if (password !== repeatPassword) {
-      Alert.alert('Error', 'Las contraseñas no coinciden');
-      return;
-    }
-
     setLoading(true);
-    try {
-      const { user, error } = await supabase.auth.signUp({
-        email,
-        password,
-      });
-
-      if (error) {
-        Alert.alert('Error al registrarse', error.message);
-        setLoading(false);
-      } else {
-        // Se puede agregar la lógica para actualizar el nombre de usuario después del registro
-        const { error: updateError } = await supabase
-          .from('users')
-          .upsert([{ id: user?.id, username }]);
-
-        if (updateError) {
-          Alert.alert('Error al guardar el nombre de usuario', updateError.message);
-        } else {
-          Alert.alert('Registro exitoso', '¡Tu cuenta ha sido creada!');
-        }
-        setLoading(false);
-      }
-    } catch (error) {
-      setLoading(false);
-      Alert.alert('Error', 'Hubo un problema al crear tu cuenta');
+    const { data: { session }, error } = await supabase.auth.signUp({ email, password });
+    if (error) {
+      Alert.alert(error.message);
+    } else if (!session) {
+      Alert.alert('Please check your email to verify your account!');
     }
+    setLoading(false);
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Crea tu cuenta</Text>
-
-      <TextInput
-        style={styles.input}
-        placeholder="Nombre de usuario"
-        value={username}
-        onChangeText={setUsername}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Correo electrónico"
-        keyboardType="email-address"
+      <Text style={styles.header}>Sign Up</Text>
+      <Input
+        label="Email"
         value={email}
         onChangeText={setEmail}
+        placeholder="Email"
+        autoCapitalize="none"
       />
-      <TextInput
-        style={styles.input}
-        placeholder="Contraseña"
-        secureTextEntry
+      <Input
+        label="Password"
         value={password}
         onChangeText={setPassword}
+        secureTextEntry={true}
+        placeholder="Password"
+        autoCapitalize="none"
       />
-      <TextInput
-        style={styles.input}
-        placeholder="Repetir contraseña"
-        secureTextEntry
-        value={repeatPassword}
-        onChangeText={setRepeatPassword}
-      />
-
       <Button
-        title={loading ? 'Registrando...' : 'Registrarse'}
+        title="Sign Up"
         onPress={handleSignUp}
         disabled={loading}
+        loading={loading}
       />
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
     justifyContent: 'center',
+    padding: 20,
   },
   header: {
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 20,
-    textAlign: 'center',
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    padding: 10,
-    marginBottom: 15,
-    borderRadius: 5,
   },
 });
-
-export default SignUp;

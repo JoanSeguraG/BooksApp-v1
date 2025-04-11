@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Alert, StyleSheet, View } from 'react-native';
+import { Alert, StyleSheet, View, Text } from 'react-native'; // Agregamos Text
 import { supabase } from '../lib/supabase';
 import { Button, Input } from '@rneui/themed';
 
@@ -7,13 +7,31 @@ export default function Auth() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [signInError, setSignInError] = useState(''); // Estado para error
 
   async function signInWithEmail() {
+    setSignInError('');
+    
+    // Validación de campos vacíos
+    if (!email || !password) {
+      setSignInError('Has d’omplir tots els camps.');
+      return;
+    }
+  
     setLoading(true);
+  
     const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) Alert.alert(error.message);
+  
+    if (error) {
+      if (error.message.toLowerCase().includes('invalid')) {
+        setSignInError('Email o contrasenya incorrectes.');
+      } else {
+        setSignInError(error.message);
+      }
+    }
+  
     setLoading(false);
-  }
+  }  
 
   async function signUpWithEmail() {
     setLoading(true);
@@ -64,6 +82,7 @@ export default function Auth() {
       </View>
       <View style={[styles.verticallySpaced, styles.mt20]}>
         <Button title="Sign in" disabled={loading} onPress={signInWithEmail} />
+        {signInError ? <Text style={styles.errorText}>{signInError}</Text> : null}
       </View>
       <View style={styles.verticallySpaced}>
         <Button title="Sign up" disabled={loading} onPress={signUpWithEmail} />
@@ -87,5 +106,11 @@ const styles = StyleSheet.create({
   },
   mt20: {
     marginTop: 20,
+  },
+  errorText: {
+    color: 'red',
+    marginTop: 8,
+    marginLeft: 10,
+    fontSize: 14,
   },
 });

@@ -1,36 +1,43 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet } from 'react-native';
+import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import { Icon } from '@rneui/themed';
 
-interface BookProps {
+interface Book {
+  id: string;
   title: string;
-  author: string;
-  image: string;
+  description: string;
+  year: string;
+  coverUrl: string;
 }
 
-export const BookCard = ({ title, author, image }: BookProps) => {
+interface Props {
+  book: Book;
+  onDelete: () => void;
+}
+
+export default function BookCard({ book, onDelete }: Props) {
   return (
     <View style={styles.card}>
-      <Image source={{ uri: image }} style={styles.image} />
+      <Image source={{ uri: book.coverUrl }} style={styles.image} />
       <View style={styles.info}>
-        <Text style={styles.title}>{title}</Text>
-        <Text style={styles.author}>{author}</Text>
+        <Text style={styles.title}>{book.title}</Text>
+        <Text style={styles.description}>{book.description}</Text>
+        <Text style={styles.year}>{book.year}</Text>
       </View>
+      <TouchableOpacity onPress={onDelete} style={styles.deleteButton}>
+        <Icon name="trash" type="font-awesome" color="#ffcc00" />
+      </TouchableOpacity>
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   card: {
+    backgroundColor: '#2f2f2f',
+    borderRadius: 16,
     flexDirection: 'row',
-    backgroundColor: '#fff',
-    marginVertical: 8,
-    marginHorizontal: 16,
-    borderRadius: 12,
     padding: 12,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    alignItems: 'center',
   },
   image: {
     width: 60,
@@ -38,15 +45,25 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   info: {
+    flex: 1,
     marginLeft: 12,
-    justifyContent: 'center',
   },
   title: {
-    fontSize: 16,
     fontWeight: 'bold',
+    color: '#fff',
+    fontSize: 16,
   },
-  author: {
-    fontSize: 14,
-    color: '#555',
+  description: {
+    color: '#ccc',
+    fontSize: 12,
+    marginTop: 4,
+  },
+  year: {
+    color: '#fff',
+    fontSize: 12,
+    marginTop: 8,
+  },
+  deleteButton: {
+    paddingLeft: 10,
   },
 });

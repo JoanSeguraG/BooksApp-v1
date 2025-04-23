@@ -7,7 +7,8 @@ import { useAuth, AuthProvider } from './context/AuthContext';
 import Auth from './components/Auth';
 import HomeScreen from './screens/HomeScreen';
 import SignUp from './screens/SignUp';
-import Profile from './screens/Profile';  // Ruta a la página de perfil
+import Profile from './screens/Profile';
+import EditProfile from './screens/EditProfile';
 
 const Stack = createStackNavigator();
 
@@ -25,12 +26,15 @@ function AppNavigator() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       {session ? (
-        <Stack.Screen name="Home" component={HomeScreen} />
+        <>
+          <Stack.Screen name="Home" component={HomeScreen} />
+          <Stack.Screen name="Profile" component={Profile} />
+          <Stack.Screen name="EditProfile" component={EditProfile} />
+        </>
       ) : (
         <>
           <Stack.Screen name="Auth" component={Auth} />
           <Stack.Screen name="SignUp" component={SignUp} />
-          
         </>
       )}
     </Stack.Navigator>

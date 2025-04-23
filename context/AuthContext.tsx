@@ -11,6 +11,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, username: string) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  updateUserProfile: (username: string, telefono: string) => Promise<void>;  // Agregar esta línea
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -138,6 +139,58 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setError(error instanceof Error ? error.message : 'Error desconocido al cerrar sesión');
     }
   };
+  
+  const updateUserProfile = async (username: string, telefono: string) => {
+    if (!session?.user || !session.user.id) {
+      setError('No se pudo actualizar el perfil, el id de usuario no está disponible.');
+      return;
+    }
+  
+    setLoading(true);
+    setError(null);
+  
+    try {
+      // Asegúrate de que los datos sean válidos y los campos estén definidos
+      const { data, error } = await supabase
+        .from('users') // Asumiendo que tienes una tabla 'users' donde guardas los datos
+        .update({
+          username,
+          telefono
+        })
+        .eq('id', session.user.id); // Actualizamos solo al usuario correspondiente
+  
+      if (error) {
+        throw error;
+      }
+  
+      // Si la actualización fue exitosa, actualiza la sesión con los nuevos datos
+      setSession((prevSession) => {
+        if (prevSession) {
+          return {
+            ...prevSession,
+            user: {
+              ...prevSession.user,
+              user_metadata: {
+                ...prevSession.user.user_metadata,
+                username,
+                telefono,
+              },
+            },
+          };
+        }
+        return prevSession;
+      });
+  
+      console.log('Perfil actualizado con éxito');
+    } catch (error) {
+      console.error('Error al actualizar el perfil:', error);
+      setError(error instanceof Error ? error.message : 'Error desconocido al actualizar el perfil');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  
 
   return (
     <AuthContext.Provider value={{ session, initializing, loading, error, signUp, login, logout }}>

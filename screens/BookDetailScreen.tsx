@@ -1,115 +1,67 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, Image, Button, StyleSheet, ScrollView, Alert } from 'react-native';
-import { supabase } from '../lib/supabase';
+import React from 'react';
+import { View, Text, Image, StyleSheet, ScrollView, Button } from 'react-native';
+import { addFavorite } from '../lib/favoritesStorage';
 
-interface Book {
-  id: string;
-  title: string;
-  author: string;
-  description: string;
-  image: string;
-}
+export default function BookDetailScreen({ route }) {
+  const { book } = route.params;
+  const volume = book.volumeInfo;
 
-interface Props {
-  route: any;
-  navigation: any;
-}
-
-const userId = 'usuario_ejemplo_123'; // ← Aquí deberías usar el ID real del usuario autenticado
-
-const BookDetailScreen: React.FC<Props> = ({ route }) => {
-  const { book }: { book: Book } = route.params;
-  const [isFavorite, setIsFavorite] = useState(false);
-
-  useEffect(() => {
-    checkIfFavorite();
-  }, []);
-
-  const checkIfFavorite = async () => {
-    const { data, error } = await supabase
-      .from('favoritos')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('book_id', book.id)
-      .single();
-
-    if (data) setIsFavorite(true);
-    else setIsFavorite(false);
+  const bookData = {
+    id: book.id,
+    title: volume.title,
+    description: volume.description || 'Sin descripción',
+    year: volume.publishedDate?.substring(0, 4) || 'Desconocido',
+    image: volume.imageLinks?.thumbnail || '',
   };
 
-  const toggleFavorite = async () => {
-    if (isFavorite) {
-      // Eliminar de favoritos
-      const { error } = await supabase
-        .from('favoritos')
-        .delete()
-        .eq('user_id', userId)
-        .eq('book_id', book.id);
-
-      if (error) Alert.alert('Error al quitar de favoritos');
-      else {
-        setIsFavorite(false);
-        Alert.alert('Eliminado de favoritos');
-      }
-    } else {
-      // Añadir a favoritos
-      const { error } = await supabase.from('favoritos').insert([
-        {
-          user_id: userId,
-          book_id: book.id,
-        },
-      ]);
-
-      if (error) Alert.alert('Error al añadir a favoritos');
-      else {
-        setIsFavorite(true);
-        Alert.alert('Añadido a favoritos');
-      }
-    }
+  const handleAddToFavorites = async () => {
+    await addFavorite(bookData);
+    alert('Libro añadido a favoritos!');
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Image source={{ uri: book.image }} style={styles.image} />
-      <Text style={styles.title}>{book.title}</Text>
-      <Text style={styles.author}>Autor: {book.author}</Text>
-      <Text style={styles.description}>{book.description}</Text>
+    <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.container}>
+      <Text style={styles.title}>{bookData.title}</Text>
+      <Image source={{ uri: bookData.image }} style={styles.image} />
 
-      <Button
-        title={isFavorite ? 'Quitar de favoritos' : 'Añadir a favoritos'}
-        onPress={toggleFavorite}
-        color={isFavorite ? 'red' : 'green'}
-      />
+      <Text style={styles.label}>Autor(es):</Text>
+      <Text style={styles.text}>{volume.authors?.join(', ') || 'Desconocido'}</Text>
+
+      <Text style={styles.label}>Año:</Text>
+      <Text style={styles.text}>{bookData.year}</Text>
+
+      <Text style={styles.label}>Descripción:</Text>
+      <Text style={styles.text}>{bookData.description}</Text>
+
+      <View style={{ marginTop: 20 }}>
+        <Button title="Añadir a favoritos" onPress={handleAddToFavorites} />
+      </View>
     </ScrollView>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
-    padding: 20,
-    alignItems: 'center',
+    padding: 20
   },
   image: {
-    width: 150,
-    height: 220,
-    resizeMode: 'cover',
-    marginBottom: 20,
+    width: '100%',
+    height: 300,
+    resizeMode: 'contain',
+    marginVertical: 20,
+    borderRadius: 10
   },
   title: {
     fontSize: 22,
     fontWeight: 'bold',
-    marginBottom: 8,
-    textAlign: 'center',
+    textAlign: 'center'
   },
-  author: {
-    fontSize: 16,
-    marginBottom: 10,
+  label: {
+    fontWeight: 'bold',
+    marginTop: 15
   },
-  description: {
-    fontSize: 14,
-    textAlign: 'justify',
-    marginBottom: 20,
-  },
+  text: {
+    textAlign: 'left',
+    fontSize: 14
+  }
 });
-
-export default BookDetailScreen;

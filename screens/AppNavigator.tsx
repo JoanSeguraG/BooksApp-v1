@@ -5,6 +5,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { AuthContext } from '../context/AuthContext';
 
+import HomeStack from '../screens/HomeStack';
 import SearchScreen from '../screens/SearchScreen';
 import BookDetailScreen from '../screens/BookDetailScreen';
 import FavoritesScreen from '../screens/FavoritesScreen';
@@ -16,11 +17,14 @@ const Stack = createNativeStackNavigator();
 
 const Tabs = () => (
   <Tab.Navigator>
-    <Tab.Screen name="Search" component={SearchScreen} />
-    <Tab.Screen name="Favorites" component={FavoritesScreen} />
-    <Tab.Screen name="Settings" component={SettingsScreen} />
+    <Tab.Screen name="Inicio" component={HomeStack} />
+
+    <Tab.Screen name="Favoritos" component={FavoritesScreen} />
+    <Tab.Screen name="Ajustes" component={SettingsScreen} />
   </Tab.Navigator>
 );
+
+
 
 export default function AppNavigator() {
   const { user } = useContext(AuthContext);
@@ -33,8 +37,11 @@ export default function AppNavigator() {
         ) : (
           <>
             <Stack.Screen name="Home" component={Tabs} />
-            <Stack.Screen name="Details" component={BookDetailScreen} />
-          </>
+            <Stack.Screen
+  name="BookDetail"
+  component={BookDetailScreen}
+  options={{ title: 'Detalles del libro' }}
+ />          </>
         )}
       </Stack.Navigator>
     </NavigationContainer>

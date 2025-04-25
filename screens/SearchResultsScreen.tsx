@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import {
+  View, Text, Image, TouchableOpacity,
+  ScrollView, StyleSheet, TextInput, Button
+} from 'react-native';
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../lib/types';
@@ -12,9 +15,8 @@ export default function SearchResultsScreen() {
   const route = useRoute<SearchResultsScreenRouteProp>();
   const navigation = useNavigation<SearchResultsScreenNavigationProp>();
 
-  const query = route?.params?.query || '';
-  
-
+  const initialQuery = route?.params?.query || '';
+  const [query, setQuery] = useState(initialQuery);
   const [books, setBooks] = useState<any[]>([]);
 
   useEffect(() => {
@@ -25,8 +27,23 @@ export default function SearchResultsScreen() {
     fetchData();
   }, [query]);
 
+  const handleSearch = () => {
+    if (query.trim() !== '') {
+      navigation.navigate('SearchResults', { query });
+    }
+  };
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
+      
+      <TextInput
+        placeholder="Buscar libros..."
+        value={query}
+        onChangeText={setQuery}
+        style={styles.input}
+      />
+      <Button title="Buscar" onPress={handleSearch} />
+
       <Text style={styles.title}>Resultados para: "{query}"</Text>
       {books.map((book) => {
         const volume = book.volumeInfo;
@@ -51,6 +68,13 @@ export default function SearchResultsScreen() {
 const styles = StyleSheet.create({
   container: {
     padding: 20
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    padding: 8,
+    marginBottom: 10,
+    borderRadius: 6
   },
   title: {
     fontSize: 20,

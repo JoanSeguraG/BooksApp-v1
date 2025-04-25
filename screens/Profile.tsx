@@ -1,15 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Button, StyleSheet } from 'react-native';
-import { useAuth } from '../context/AuthContext'; // Asegúrate de que la ruta es correcta
+import { useAuth } from '../context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../lib/types'; 
+
+type ProfileScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Profile'>;
 
 const Profile = () => {
-  const { session, logout, loading } = useAuth(); // Obtener la sesión del usuario y el método de logout
+  const { session, logout, loading } = useAuth();
   const [userInfo, setUserInfo] = useState<any>(null);
-  const navigation = useNavigation(); // Usamos la navegación para redirigir a la pantalla de edición
+
+  const navigation = useNavigation<ProfileScreenNavigationProp>();
 
   useEffect(() => {
-    // Al cargar el componente, obtenemos la información del usuario de la sesión
     if (session?.user) {
       setUserInfo(session.user);
     }
@@ -26,7 +30,7 @@ const Profile = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Perfil</Text>
-      
+
       {userInfo ? (
         <>
           <Text style={styles.text}>Nombre: {userInfo?.username}</Text>

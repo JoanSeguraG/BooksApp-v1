@@ -19,14 +19,46 @@ import { Ionicons } from '@expo/vector-icons';
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
+// 嵌套的 HomeStack（仅供 HomeTab 使用）
 function HomeStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Home" component={HomeScreen} />
       <Stack.Screen name="BookDetail" component={BookDetailScreen} />
       <Stack.Screen name="SearchResults" component={SearchResultsScreen} />
-      <Stack.Screen name="EditProfile" component={EditProfile} />
     </Stack.Navigator>
+  );
+}
+
+// 底部标签导航（Tabs）
+function BottomTabs() {
+  return (
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        headerShown: false,
+        tabBarActiveTintColor: '#fff',
+        tabBarInactiveTintColor: '#aaa',
+        tabBarStyle: {
+          backgroundColor: '#000',
+          borderTopWidth: 0,
+        },
+        tabBarIcon: ({ color, size }) => {
+          let iconName;
+
+          if (route.name === 'HomeTab') iconName = 'home';
+          else if (route.name === 'FavoritesTab') iconName = 'heart';
+          else if (route.name === 'SearchTab') iconName = 'search';
+          else if (route.name === 'ProfileTab') iconName = 'person';
+
+          return <Ionicons name={iconName as any} size={size} color={color} />;
+        },
+      })}
+    >
+      <Tab.Screen name="HomeTab" component={HomeStack} options={{ title: 'Inicio' }} />
+      <Tab.Screen name="FavoritesTab" component={FavoritesScreen} options={{ title: 'Favoritos' }} />
+      <Tab.Screen name="SearchTab" component={SearchResultsScreen} options={{ title: 'Buscar' }} />
+      <Tab.Screen name="ProfileTab" component={Profile} options={{ title: 'Perfil' }} />
+    </Tab.Navigator>
   );
 }
 
@@ -44,32 +76,10 @@ export default function AppNavigator() {
   return (
     <NavigationContainer>
       {session ? (
-        <Tab.Navigator
-          screenOptions={({ route }) => ({
-            headerShown: false,
-            tabBarActiveTintColor: '#fff',
-            tabBarInactiveTintColor: '#aaa',
-            tabBarStyle: {
-              backgroundColor: '#000',
-              borderTopWidth: 0,
-            },
-            tabBarIcon: ({ color, size }) => {
-              let iconName;
-
-              if (route.name === 'HomeTab') iconName = 'home';
-              else if (route.name === 'FavoritesTab') iconName = 'heart';
-              else if (route.name === 'SearchTab') iconName = 'search';
-              else if (route.name === 'ProfileTab') iconName = 'person';
-
-              return <Ionicons name={iconName as any} size={size} color={color} />;
-            },
-          })}
-        >
-          <Tab.Screen name="HomeTab" component={HomeStack} options={{ title: 'Inicio' }} />
-          <Tab.Screen name="FavoritesTab" component={FavoritesScreen} options={{ title: 'Favoritos' }} />
-          <Tab.Screen name="SearchTab" component={SearchResultsScreen} options={{ title: 'Buscar' }} />
-          <Tab.Screen name="ProfileTab" component={Profile} options={{ title: 'Perfil' }} />
-        </Tab.Navigator>
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="Main" component={BottomTabs} />
+          <Stack.Screen name="EditProfile" component={EditProfile} />
+        </Stack.Navigator>
       ) : (
         <Stack.Navigator screenOptions={{ headerShown: false }}>
           <Stack.Screen name="Auth" component={Auth} />

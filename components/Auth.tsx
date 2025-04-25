@@ -1,11 +1,16 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet } from 'react-native'; // Asegúrate de importar StyleSheet
-import { Button } from '@rneui/themed'; // Asegúrate de que estás importando Button de @rneui/themed
+import { View, Text, TextInput, StyleSheet } from 'react-native';
+import { Button } from '@rneui/themed';
 import { supabase } from '../lib/supabase';
 import { useNavigation } from '@react-navigation/native';
 
-export default function Auth() {
-  const navigation = useNavigation();
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../lib/types';
+
+type AuthScreenNavigationProp = NativeStackNavigationProp<RootStackParamList>;
+const Auth = () => {
+  const navigation = useNavigation<AuthScreenNavigationProp>();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -14,7 +19,6 @@ export default function Auth() {
   const handleLogin = async () => {
     setErrorMsg('');
 
-    // Validación de campos vacíos
     if (!email || !password) {
       setErrorMsg('Por favor, ingresa tu correo y contraseña.');
       return;
@@ -23,7 +27,6 @@ export default function Auth() {
     setLoading(true);
 
     try {
-      // Intentar iniciar sesión
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
@@ -32,12 +35,10 @@ export default function Auth() {
       if (error) {
         setErrorMsg(error.message);
       } else {
-        // Verificar si el correo está verificado
         if (!data?.user?.email_confirmed_at) {
           setErrorMsg('Debes verificar tu correo antes de iniciar sesión.');
         } else {
-          // Si el correo está verificado, navegar a la pantalla principal
-          navigation.navigate('Home');
+          navigation.navigate('HomeTab'); // ✅ 跳转到底部导航中的首页
         }
       }
     } catch (error) {
@@ -56,6 +57,7 @@ export default function Auth() {
         value={email}
         onChangeText={setEmail}
         style={styles.input}
+        autoCapitalize="none"
       />
       <TextInput
         placeholder="Contraseña"
@@ -71,18 +73,19 @@ export default function Auth() {
         title="Iniciar sesión"
         onPress={handleLogin}
         loading={loading}
-        buttonStyle={styles.button} // Usar buttonStyle en lugar de style
+        buttonStyle={styles.button}
       />
 
       {/* Botón de Sign Up */}
       <Button
         title="¿No tienes una cuenta? Regístrate"
         onPress={() => navigation.navigate('SignUp')}
-        containerStyle={styles.signupButtonContainer} // Usar containerStyle para la posición
+        containerStyle={styles.signupButtonContainer}
+        type="clear"
       />
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -99,7 +102,9 @@ const styles = StyleSheet.create({
   input: {
     borderWidth: 1,
     padding: 10,
-    marginBottom: 12
+    marginBottom: 12,
+    borderRadius: 6,
+    borderColor: '#ccc'
   },
   errorText: {
     color: 'red',
@@ -107,9 +112,12 @@ const styles = StyleSheet.create({
     marginLeft: 10
   },
   button: {
-    marginTop: 12, // Estilo para el botón "Iniciar sesión"
+    marginTop: 12,
+    backgroundColor: '#000'
   },
   signupButtonContainer: {
-    marginTop: 20, // Estilo para el contenedor del botón "Regístrate"
+    marginTop: 20
   }
 });
+
+export default Auth;

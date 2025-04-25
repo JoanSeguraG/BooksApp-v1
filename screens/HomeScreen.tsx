@@ -45,6 +45,8 @@ export default function HomeScreen({ navigation }) {
   const handleSearch = async () => {
     const results = await searchBooks(query);
     setBooks(results);
+    // Asegurémonos de que la navegación a SearchResults funciona correctamente
+    navigation.navigate('SearchResults', { query: query });
   };
 
   const handleLogout = async () => {
@@ -76,33 +78,6 @@ export default function HomeScreen({ navigation }) {
       />
       <Button title="Buscar" onPress={handleSearch} />
 
-      {books.length > 0 && (
-        <View style={styles.searchResults}>
-          <Text style={styles.sectionTitle}>Resultados:</Text>
-          {books.map((item) => {
-            const volume = item.volumeInfo;
-            const bookData = {
-              id: item.id,
-              title: volume.title,
-              description: volume.description || 'Sin descripción',
-              year: volume.publishedDate?.substring(0, 4) || 'Desconocido',
-              image: volume.imageLinks?.thumbnail || ''
-            };
-
-            return (
-              <View key={item.id} style={styles.resultItem}>
-                <Image source={{ uri: bookData.image }} style={styles.resultImage} />
-                <View style={{ flex: 1, marginLeft: 10 }}>
-                  <Text style={styles.title}>{bookData.title}</Text>
-                  <Text numberOfLines={2}>{bookData.description}</Text>
-                  <Button title="Añadir a favoritos" onPress={() => handleAddToFavorites(bookData)} />
-                </View>
-              </View>
-            );
-          })}
-        </View>
-      )}
-
       {/* Libros por categoría */}
       {Object.entries(booksByCategory).map(([title, items]) => (
         <View key={title} style={{ marginTop: 20 }}>
@@ -130,7 +105,7 @@ export default function HomeScreen({ navigation }) {
 
       {/* Navegación */}
       <View style={{ marginTop: 30 }}>
-        <Button title="Ir a Favoritos" onPress={() => navigation.navigate('FavoritesScreen')} />
+        <Button title="Ir a Favoritos" onPress={() => navigation.navigate('Favorites')} />
         <Button title="Ir al Perfil" onPress={() => navigation.navigate('Profile')} />
         <Button title="Cerrar sesión" onPress={handleLogout} color="red" />
       </View>
@@ -172,23 +147,5 @@ const styles = StyleSheet.create({
   bookTitle: {
     fontSize: 12,
     marginTop: 5
-  },
-  searchResults: {
-    marginTop: 20
-  },
-  resultItem: {
-    flexDirection: 'row',
-    marginVertical: 10,
-    alignItems: 'center'
-  },
-  resultImage: {
-    width: 60,
-    height: 90,
-    borderRadius: 4
-  },
-  title: {
-    fontWeight: 'bold',
-    fontSize: 16,
-    marginBottom: 5
   }
 });

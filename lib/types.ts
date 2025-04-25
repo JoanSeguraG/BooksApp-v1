@@ -5,6 +5,7 @@ export type RootStackParamList = {
     BookDetail: { book: Book }; // Usamos el tipo Book aquí
     Favorites: undefined;
     Profile: undefined;
+    EditProfile: undefined;
     Auth: undefined;
   };
   

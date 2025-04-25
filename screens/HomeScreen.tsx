@@ -50,10 +50,10 @@ export default function HomeScreen() {
     fetchBooksByCategory();
   }, []);
 
-  const handleSearch = async () => {
-    const results = await searchBooks(query);
-    setBooks(results);
-    navigation.navigate('SearchResults', { query });  // Verifica que 'SearchResults' esté registrado en tu AppNavigator
+  const handleSearch = () => {
+    if (query.trim() !== '') {
+      navigation.navigate('SearchResults', { query });
+    }
   };
 
   const handleLogout = async () => {

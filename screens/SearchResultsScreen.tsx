@@ -11,7 +11,9 @@ type SearchResultsScreenNavigationProp = NativeStackNavigationProp<RootStackPara
 export default function SearchResultsScreen() {
   const route = useRoute<SearchResultsScreenRouteProp>();
   const navigation = useNavigation<SearchResultsScreenNavigationProp>();
-  const { query } = route.params;
+
+  const query = route?.params?.query || '';
+  
 
   const [books, setBooks] = useState<any[]>([]);
 

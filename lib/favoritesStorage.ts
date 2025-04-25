@@ -1,32 +1,36 @@
+// favoritesStorage.ts
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Book } from '../types';
+import { Book } from '../types'; // Asegúrate de que el tipo Book esté bien definido
 
-const FAVORITES_KEY = 'FAVORITE_BOOKS';
-
+// Función para obtener los favoritos desde AsyncStorage
 export const getFavorites = async (): Promise<Book[]> => {
-  const json = await AsyncStorage.getItem(FAVORITES_KEY);
-  return json ? JSON.parse(json) : [];
-};
-
-export const saveFavorites = async (favorites: Book[]): Promise<void> => {
-  await AsyncStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
-};
-
-export const addFavorite = async (book: Book): Promise<void> => {
-  const favorites = await getFavorites();
-  const exists = favorites.some(fav => fav.id === book.id);
-  if (!exists) {
-    await saveFavorites([...favorites, book]);
+  try {
+    const favorites = await AsyncStorage.getItem('favorites');
+    return favorites ? JSON.parse(favorites) : [];  // Si no hay favoritos, devuelve un array vacío
+  } catch (error) {
+    console.error('Error al obtener los favoritos:', error);
+    return [];  // Si ocurre un error, también devuelve un array vacío
   }
 };
 
-export const removeFavorite = async (id: string): Promise<void> => {
-  const favorites = await getFavorites();
-  const updated = favorites.filter(book => book.id !== id);
-  await saveFavorites(updated);
+// Función para añadir un libro a los favoritos
+export const addFavorite = async (book: Book) => {
+  try {
+    const currentFavorites = await getFavorites();  // Obtiene los favoritos actuales
+    currentFavorites.push(book);  // Añade el nuevo libro a la lista
+    await AsyncStorage.setItem('favorites', JSON.stringify(currentFavorites));  // Guarda la lista actualizada en AsyncStorage
+  } catch (error) {
+    console.error('Error al añadir favorito:', error);
+  }
 };
 
-export const isFavorite = async (id: string): Promise<boolean> => {
-  const favorites = await getFavorites();
-  return favorites.some(book => book.id === id);
+// Función para eliminar un libro de los favoritos
+export const removeFavorite = async (bookId: string) => {
+  try {
+    const currentFavorites = await getFavorites();
+    const updatedFavorites = currentFavorites.filter((book: Book) => book.id !== bookId);  // Elimina el libro de la lista
+    await AsyncStorage.setItem('favorites', JSON.stringify(updatedFavorites));  // Guarda la lista actualizada
+  } catch (error) {
+    console.error('Error al eliminar favorito:', error);
+  }
 };

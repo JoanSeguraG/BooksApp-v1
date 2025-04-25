@@ -27,6 +27,7 @@ function AppNavigator() {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       {session ? (
         <>
+          {/* Cada pantalla debe ser envuelta en Stack.Screen */}
           <Stack.Screen name="Home" component={HomeScreen} />
           <Stack.Screen name="Profile" component={Profile} />
           <Stack.Screen name="EditProfile" component={EditProfile} />

@@ -3,15 +3,23 @@ import {
   View, Text, Image, StyleSheet, Button, Alert,
   TextInput, TouchableOpacity, ScrollView
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../lib/types'; // Ajusta la ruta según tu estructura
 import { addFavorite } from '../lib/favoritesStorage';
 import { supabase } from '../lib/supabase';
 import { searchBooks } from '../components/Api';
 
-export default function HomeScreen({ navigation }) {
+
+type HomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
+
+export default function HomeScreen() {
+  const navigation = useNavigation<HomeScreenNavigationProp>();
   const [username, setUsername] = useState('');
   const [query, setQuery] = useState('');
   const [books, setBooks] = useState([]);
-  const [booksByCategory, setBooksByCategory] = useState({});
+  const [booksByCategory, setBooksByCategory] = useState<Record<string, any[]>>({});
+  
 
   const categories = [
     { title: 'Ficción', query: 'fiction' },
@@ -31,7 +39,7 @@ export default function HomeScreen({ navigation }) {
     fetchUser();
 
     const fetchBooksByCategory = async () => {
-      const results = {};
+      const results: Record<string, any[]> = {};
       for (const cat of categories) {
         const data = await searchBooks(cat.query);
         results[cat.title] = data.slice(0, 5);
@@ -45,8 +53,7 @@ export default function HomeScreen({ navigation }) {
   const handleSearch = async () => {
     const results = await searchBooks(query);
     setBooks(results);
-    // Asegurémonos de que la navegación a SearchResults funciona correctamente
-    navigation.navigate('SearchResults', { query: query });
+    navigation.navigate('SearchResults', { query });  // Verifica que 'SearchResults' esté registrado en tu AppNavigator
   };
 
   const handleLogout = async () => {
@@ -56,12 +63,12 @@ export default function HomeScreen({ navigation }) {
     } else {
       navigation.reset({
         index: 0,
-        routes: [{ name: 'Auth' }]
+        routes: [{ name: 'Auth' }]  // Asegúrate de que 'Auth' también esté registrado en el AppNavigator
       });
     }
   };
 
-  const handleAddToFavorites = async (bookData) => {
+  const handleAddToFavorites = async (bookData: any) => {
     await addFavorite(bookData);
     alert('Libro añadido a favoritos!');
   };
@@ -78,7 +85,6 @@ export default function HomeScreen({ navigation }) {
       />
       <Button title="Buscar" onPress={handleSearch} />
 
-      {/* Libros por categoría */}
       {Object.entries(booksByCategory).map(([title, items]) => (
         <View key={title} style={{ marginTop: 20 }}>
           <Text style={styles.sectionTitle}>{title}</Text>
@@ -88,7 +94,7 @@ export default function HomeScreen({ navigation }) {
               return (
                 <TouchableOpacity
                   key={item.id}
-                  onPress={() => navigation.navigate('BookDetail', { book: item })}
+                  onPress={() => navigation.navigate('BookDetail', { book: item })}  // Verifica que 'BookDetail' esté registrado
                   style={styles.bookItem}
                 >
                   <Image
@@ -103,10 +109,9 @@ export default function HomeScreen({ navigation }) {
         </View>
       ))}
 
-      {/* Navegación */}
       <View style={{ marginTop: 30 }}>
-        <Button title="Ir a Favoritos" onPress={() => navigation.navigate('Favorites')} />
-        <Button title="Ir al Perfil" onPress={() => navigation.navigate('Profile')} />
+        <Button title="Ir a Favoritos" onPress={() => navigation.navigate('FavoritesScreen')} />  {/* Verifica que 'Favorites' esté registrado */}
+        <Button title="Ir al Perfil" onPress={() => navigation.navigate('Profile')} />  {/* Verifica que 'Profile' esté registrado */}
         <Button title="Cerrar sesión" onPress={handleLogout} color="red" />
       </View>
     </ScrollView>

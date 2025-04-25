@@ -1,47 +1,73 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
-import { searchBooks } from '../components/Api'; // Asegúrate de tener esta función de búsqueda
+import { View, Text, Image, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../lib/types';
+import { searchBooks } from '../components/Api';
 
-const SearchResultsScreen = ({ route }) => {
-  const { query } = route.params; // Asegúrate de que query se recibe correctamente
+type SearchResultsScreenRouteProp = RouteProp<RootStackParamList, 'SearchResults'>;
+type SearchResultsScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'SearchResults'>;
 
-  const [books, setBooks] = useState([]);
+export default function SearchResultsScreen() {
+  const route = useRoute<SearchResultsScreenRouteProp>();
+  const navigation = useNavigation<SearchResultsScreenNavigationProp>();
+  const { query } = route.params;
+
+  const [books, setBooks] = useState<any[]>([]);
 
   useEffect(() => {
-    const fetchBooks = async () => {
+    const fetchData = async () => {
       const results = await searchBooks(query);
       setBooks(results);
     };
-    fetchBooks();
+    fetchData();
   }, [query]);
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Resultados de búsqueda para "{query}"</Text>
-      <ScrollView>
-        {books.map((book) => (
-          <View key={book.id} style={styles.bookItem}>
-            <Text>{book.volumeInfo.title}</Text>
-            {/* Aquí puedes mostrar más detalles sobre el libro */}
-          </View>
-        ))}
-      </ScrollView>
-    </View>
+    <ScrollView contentContainerStyle={styles.container}>
+      <Text style={styles.title}>Resultados para: "{query}"</Text>
+      {books.map((book) => {
+        const volume = book.volumeInfo;
+        return (
+          <TouchableOpacity
+            key={book.id}
+            style={styles.bookItem}
+            onPress={() => navigation.navigate('BookDetail', { book })}
+          >
+            <Image
+              source={{ uri: volume.imageLinks?.thumbnail }}
+              style={styles.thumbnail}
+            />
+            <Text numberOfLines={1} style={styles.bookTitle}>{volume.title}</Text>
+          </TouchableOpacity>
+        );
+      })}
+    </ScrollView>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    padding: 20,
+    padding: 20
   },
   title: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
+    marginBottom: 15
   },
   bookItem: {
-    marginVertical: 10,
+    marginBottom: 15,
+    flexDirection: 'row',
+    alignItems: 'center'
   },
+  thumbnail: {
+    width: 60,
+    height: 90,
+    marginRight: 10,
+    borderRadius: 4
+  },
+  bookTitle: {
+    fontSize: 16,
+    flex: 1
+  }
 });
-
-export default SearchResultsScreen;

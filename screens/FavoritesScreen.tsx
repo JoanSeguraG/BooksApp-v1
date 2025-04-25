@@ -1,81 +1,69 @@
-import React, { useEffect, useState } from 'react';
-import { View, FlatList, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
-import { getFavorites, removeFavorite } from '../lib/favoritesStorage';
-import { Book } from '../types';
+import React, { useState, useEffect } from 'react';
+import { View, Text, FlatList, TouchableOpacity, Image, StyleSheet } from 'react-native';
+import { getFavorites } from '../lib/favoritesStorage';  // Asegúrate de que el path sea correcto
+import { Book } from '../lib/types';  // Asegúrate de que 'Book' esté correctamente definido
+import { useNavigation } from '@react-navigation/native';
 
-export default function FavoritesScreen() {
+const FavoritesScreen = () => {
   const [favorites, setFavorites] = useState<Book[]>([]);
 
+  // Cargar los favoritos desde AsyncStorage cuando el componente se monta
   useEffect(() => {
     const fetchFavorites = async () => {
-      const favs = await getFavorites();
-      setFavorites(favs);
+      const storedFavorites = await getFavorites();
+      setFavorites(storedFavorites);
     };
     fetchFavorites();
   }, []);
 
-  const handleRemove = async (bookId: string) => {
-    await removeFavorite(bookId);
-    const updatedFavorites = await getFavorites();
-    setFavorites(updatedFavorites);
+  // Función para renderizar cada libro favorito
+  const renderItem = ({ item }: { item: Book }) => {
+    return (
+      <TouchableOpacity style={styles.bookContainer}>
+        <Image
+          source={{ uri: item.volumeInfo?.imageLinks?.thumbnail }}
+          style={styles.bookImage}
+        />
+        <Text style={styles.bookTitle}>{item.volumeInfo?.title}</Text>
+      </TouchableOpacity>
+    );
   };
 
-  const renderItem = ({ item }: { item: Book }) => (
-    <View style={styles.card}>
-      <Image source={{ uri: item.cover }} style={styles.image} />
-      <View style={styles.info}>
-        <Text style={styles.title}>{item.title}</Text>
-        <Text>{item.year}</Text>
-        <Text numberOfLines={2}>{item.description}</Text>
-        <TouchableOpacity onPress={() => handleRemove(item.id)} style={styles.button}>
-          <Text style={styles.buttonText}>Eliminar</Text>
-        </TouchableOpacity>
-      </View>
+  return (
+    <View style={styles.container}>
+      <Text style={styles.header}>Tus Favoritos</Text>
+      <FlatList
+        data={favorites}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.id.toString()}
+      />
     </View>
   );
-
-  return (
-    <FlatList
-      data={favorites}
-      keyExtractor={(item) => item.id}
-      renderItem={renderItem}
-      contentContainerStyle={styles.container}
-    />
-  );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
-    padding: 16,
+    flex: 1,
+    padding: 20,
   },
-  card: {
-    flexDirection: 'row',
-    marginBottom: 16,
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    overflow: 'hidden',
-    elevation: 2,
+  header: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 20,
   },
-  image: {
+  bookContainer: {
+    marginBottom: 20,
+    alignItems: 'center',
+  },
+  bookImage: {
     width: 100,
     height: 150,
   },
-  info: {
-    flex: 1,
-    padding: 12,
-  },
-  title: {
-    fontWeight: 'bold',
+  bookTitle: {
+    marginTop: 10,
     fontSize: 16,
-  },
-  button: {
-    marginTop: 8,
-    padding: 8,
-    backgroundColor: '#f44336',
-    borderRadius: 6,
-  },
-  buttonText: {
-    color: '#fff',
     textAlign: 'center',
   },
 });
+
+export default FavoritesScreen;

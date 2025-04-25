@@ -110,8 +110,6 @@ export default function HomeScreen() {
       ))}
 
       <View style={{ marginTop: 30 }}>
-        <Button title="Ir a Favoritos" onPress={() => navigation.navigate('FavoritesScreen')} />  {/* Verifica que 'Favorites' esté registrado */}
-        <Button title="Ir al Perfil" onPress={() => navigation.navigate('Profile')} />  {/* Verifica que 'Profile' esté registrado */}
         <Button title="Cerrar sesión" onPress={handleLogout} color="red" />
       </View>
     </ScrollView>

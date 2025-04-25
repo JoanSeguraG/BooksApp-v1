@@ -1,67 +1,73 @@
-import React from 'react';
-import { View, Text, Image, StyleSheet, ScrollView, Button } from 'react-native';
-import { addFavorite } from '../lib/favoritesStorage';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import { RouteProp, useRoute } from '@react-navigation/native';
+import { addFavorite, isFavorite, removeFavorite } from '../lib/favoritesStorage';
+import { Book } from '../types';
 
-export default function BookDetailScreen({ route }) {
+type BookDetailRouteProp = RouteProp<{ params: { book: Book } }, 'params'>;
+
+export default function BookDetailScreen() {
+  const route = useRoute<BookDetailRouteProp>();
   const { book } = route.params;
-  const volume = book.volumeInfo;
+  const [favorite, setFavorite] = useState(false);
 
-  const bookData = {
-    id: book.id,
-    title: volume.title,
-    description: volume.description || 'Sin descripción',
-    year: volume.publishedDate?.substring(0, 4) || 'Desconocido',
-    image: volume.imageLinks?.thumbnail || '',
-  };
+  useEffect(() => {
+    const checkFavorite = async () => {
+      const fav = await isFavorite(book.id);
+      setFavorite(fav);
+    };
+    checkFavorite();
+  }, []);
 
-  const handleAddToFavorites = async () => {
-    await addFavorite(bookData);
-    alert('Libro añadido a favoritos!');
+  const toggleFavorite = async () => {
+    if (favorite) {
+      await removeFavorite(book.id);
+    } else {
+      await addFavorite(book);
+    }
+    setFavorite(!favorite);
   };
 
   return (
-    <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.container}>
-      <Text style={styles.title}>{bookData.title}</Text>
-      <Image source={{ uri: bookData.image }} style={styles.image} />
-
-      <Text style={styles.label}>Autor(es):</Text>
-      <Text style={styles.text}>{volume.authors?.join(', ') || 'Desconocido'}</Text>
-
-      <Text style={styles.label}>Año:</Text>
-      <Text style={styles.text}>{bookData.year}</Text>
-
-      <Text style={styles.label}>Descripción:</Text>
-      <Text style={styles.text}>{bookData.description}</Text>
-
-      <View style={{ marginTop: 20 }}>
-        <Button title="Añadir a favoritos" onPress={handleAddToFavorites} />
-      </View>
-    </ScrollView>
+    <View style={styles.container}>
+      <Image source={{ uri: book.cover }} style={styles.image} />
+      <Text style={styles.title}>{book.title}</Text>
+      <Text>{book.year}</Text>
+      <Text style={styles.description}>{book.description}</Text>
+      <TouchableOpacity onPress={toggleFavorite} style={styles.button}>
+        <Text style={styles.buttonText}>
+          {favorite ? 'Quitar de Favoritos' : 'Agregar a Favoritos'}
+        </Text>
+      </TouchableOpacity>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    padding: 20
+    padding: 16,
+    alignItems: 'center',
   },
   image: {
-    width: '100%',
+    width: 200,
     height: 300,
-    resizeMode: 'contain',
-    marginVertical: 20,
-    borderRadius: 10
+    marginBottom: 16,
   },
   title: {
     fontSize: 22,
     fontWeight: 'bold',
-    textAlign: 'center'
+    marginBottom: 8,
   },
-  label: {
-    fontWeight: 'bold',
-    marginTop: 15
+  description: {
+    textAlign: 'center',
+    marginBottom: 16,
   },
-  text: {
-    textAlign: 'left',
-    fontSize: 14
-  }
+  button: {
+    backgroundColor: '#2196f3',
+    padding: 10,
+    borderRadius: 8,
+  },
+  buttonText: {
+    color: '#fff',
+  },
 });

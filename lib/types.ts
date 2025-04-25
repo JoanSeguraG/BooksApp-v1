@@ -21,6 +21,13 @@ export type RootStackParamList = {
   
   export interface Book {
     id: string;
-    volumeInfo: VolumeInfo;
+    volumeInfo: {
+      title: string;
+      authors: string[];
+      description: string;
+      imageLinks?: {
+        thumbnail: string;
+      };
+    };
   }
   

@@ -33,8 +33,9 @@ const Profile = () => {
 
       {userInfo ? (
         <>
-          <Text style={styles.text}>Nombre: {userInfo?.username}</Text>
+          <Text style={styles.text}>Nombre: {userInfo?.user_metadata?.username}</Text>
           <Text style={styles.text}>Email: {userInfo?.email}</Text>
+          <Text style={styles.text}>Teléfono: {userInfo?.user_metadata?.telefono || 'No disponible'}</Text>
         </>
       ) : (
         <Text style={styles.text}>Cargando información del usuario...</Text>

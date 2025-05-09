@@ -193,8 +193,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   
 
   return (
-    <AuthContext.Provider value={{ session, initializing, loading, error, signUp, login, logout }}>
+    <AuthContext.Provider
+      value={{
+        session,
+        initializing,
+        loading,
+        error,
+        signUp,
+        login,
+        logout,
+        updateUserProfile 
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
+  
 };

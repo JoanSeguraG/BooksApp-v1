@@ -17,7 +17,7 @@ export default function SignUp() {
 
   const handleSignUp = async () => {
     setErrorMsg(''); // Resetear el mensaje de error
-
+  
     // Validación de campos
     if (!username || !email || !password || !repeatPassword) {
       setErrorMsg('Todos los campos son obligatorios.');
@@ -27,30 +27,54 @@ export default function SignUp() {
       setErrorMsg('Las contraseñas no coinciden.');
       return;
     }
-
+  
     setLoading(true);
-
-    // Intentar registrar al usuario
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { username }
+  
+    try {
+      // Intentar registrar al usuario
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { username } // Almacenamos el 'username' en los metadatos del usuario
+        }
+      });
+  
+      if (error) {
+        setErrorMsg(error.message); // Mostrar mensaje de error si lo hay
+      } else {
+        // Al registrarse con éxito, guardar la información en la tabla 'users'
+        const { user } = data;
+  
+        console.log("Usuario registrado:", user); // Verifica si el usuario fue creado correctamente
+  
+        // Insertar los datos del usuario en la tabla 'users' en Supabase
+        const { error: dbError } = await supabase
+          .from('users')
+          .insert([
+            {
+              id: user?.id, // Relacionamos al usuario con su id de autenticación
+              username: username,
+              email: email
+            }
+          ]);
+  
+        if (dbError) {
+          setErrorMsg('Error al guardar los datos en la base de datos.');
+          console.error(dbError); // Verifica si ocurre un error al insertar
+        } else {
+          Alert.alert('Cuenta creada', 'Tu cuenta ha sido creada con éxito.');
+          // Redirigir a la pantalla de autenticación
+          navigation.navigate('Auth');
+        }
       }
-    });
-
-    if (error) {
-      setErrorMsg(error.message); // Mostrar mensaje de error si lo hay
-    } else {
-      // Al registrarse con éxito, mostrar un mensaje y redirigir
-      Alert.alert('Cuenta creada', 'Tu cuenta ha sido creada con éxito.');
-
-      // Redirigir a la pantalla de autenticación
-      navigation.navigate('Auth'); // Esto te lleva de vuelta a la pantalla de login
+    } catch (error) {
+      setErrorMsg('Error al registrar la cuenta');
+      console.error(error); // Verifica cualquier error general
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
-  };
+  };  
 
   return (
     <View style={styles.container}>

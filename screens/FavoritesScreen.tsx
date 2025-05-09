@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { getFavorites, removeFavorite } from '../lib/favoritesStorage'; 
 import { Book } from '../lib/types'; 
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 
 export default function FavoritesScreen() {
   const [favorites, setFavorites] = useState<Book[]>([]);
@@ -14,12 +15,14 @@ export default function FavoritesScreen() {
 
   const handleRemove = async (id: string) => {
     await removeFavorite(id);
-    loadFavorites(); 
+    await loadFavorites(); 
   };
 
-  useEffect(() => {
-    loadFavorites();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      loadFavorites();
+    }, [])
+  );
 
   const renderItem = ({ item }: { item: Book }) => (
     <View style={styles.item}>
@@ -37,8 +40,7 @@ export default function FavoritesScreen() {
         <Text numberOfLines={1} style={styles.title}>{item.volumeInfo.title}</Text>
         {item.volumeInfo.authors && (
           <Text numberOfLines={1} style={styles.authors}>
-            {item.volumeInfo.authors.join(', ')}
-          </Text>
+            {item.volumeInfo.authors.join(', ')}</Text>
         )}
       </View>
       <TouchableOpacity onPress={() => handleRemove(item.id)}>

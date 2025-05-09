@@ -1,39 +1,30 @@
+// En lib/favoritesStorage.ts
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Book } from './types'; // 确保你有定义 Book 类型
 
-const FAVORITES_KEY = 'favorites';
+const FAVORITES_KEY = 'favorites_books';
 
-export const saveFavorite = async (book: Book) => {
-  try {
-    const stored = await AsyncStorage.getItem(FAVORITES_KEY);
-    const favorites = stored ? JSON.parse(stored) : [];
-    const alreadyExists = favorites.some((b: Book) => b.id === book.id);
-    if (!alreadyExists) {
-      favorites.push(book);
-      await AsyncStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
-    }
-  } catch (err) {
-    console.error('Error saving favorite', err);
-  }
-};
+export async function getFavorites() {
+  const json = await AsyncStorage.getItem(FAVORITES_KEY);
+  return json != null ? JSON.parse(json) : [];
+}
 
-export const removeFavorite = async (bookId: string) => {
-  try {
-    const stored = await AsyncStorage.getItem(FAVORITES_KEY);
-    const favorites = stored ? JSON.parse(stored) : [];
-    const updated = favorites.filter((b: Book) => b.id !== bookId);
+export async function addFavorite(book: any) {
+  const favorites = await getFavorites();
+  const exists = favorites.some((fav: any) => fav.id === book.id);
+  if (!exists) {
+    const updated = [...favorites, book];
     await AsyncStorage.setItem(FAVORITES_KEY, JSON.stringify(updated));
-  } catch (err) {
-    console.error('Error removing favorite', err);
   }
-};
+}
 
-export const getFavorites = async (): Promise<Book[]> => {
-  try {
-    const stored = await AsyncStorage.getItem(FAVORITES_KEY);
-    return stored ? JSON.parse(stored) : [];
-  } catch (err) {
-    console.error('Error getting favorites', err);
-    return [];
-  }
-};
+
+export async function removeFavorite(bookId: string) {
+  const favorites = await getFavorites();
+  const updated = favorites.filter((book: any) => book.id !== bookId);
+  await AsyncStorage.setItem(FAVORITES_KEY, JSON.stringify(updated));
+}
+
+export async function isBookFavorite(bookId: string) {
+  const favorites = await getFavorites();
+  return favorites.some((book: any) => book.id === bookId);
+}

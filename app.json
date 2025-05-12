@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "SupabaseApp",
-    "slug": "SupabaseApp",
+    "name": "Bookie",
+    "slug": "Bookie",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -16,6 +16,8 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.elteunom.Bookie",
+      "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -23,6 +25,11 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "bec5bf02-dcd2-4d57-92d4-ace24774217c"
+      }
     }
   }
 }

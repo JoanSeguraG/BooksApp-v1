@@ -18,6 +18,7 @@
     "@rneui/themed": "^4.0.0-rc.8",
     "@supabase/supabase-js": "^2.49.1",
     "@types/react-navigation": "^3.0.8",
+    "eas-cli": "^16.4.1",
     "expo": "~52.0.40",
     "expo-status-bar": "~2.0.1",
     "react": "^18.3.1",

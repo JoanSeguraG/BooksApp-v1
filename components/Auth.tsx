@@ -38,7 +38,7 @@ const Auth = () => {
         if (!data?.user?.email_confirmed_at) {
           setErrorMsg('Debes verificar tu correo antes de iniciar sesión.');
         } else {
-          navigation.navigate('HomeTab'); // ✅ 跳转到底部导航中的首页
+          navigation.navigate('HomeTab');
         }
       }
     } catch (error) {

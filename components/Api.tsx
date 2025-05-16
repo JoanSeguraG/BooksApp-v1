@@ -19,17 +19,14 @@ export interface Author {
   name: string;
 }
 
-// 全局缓存作者列表
 let cachedAuthors: Author[] = [];
 
-// 搜索图书，同时提取作者
 export async function searchBooks(query: string): Promise<Book[]> {
   try {
     const response = await fetch(`${API_URL}${encodeURIComponent(query)}`);
     const data = await response.json();
     const items = data.items || [];
 
-    // 整理图书数据
     const books: Book[] = items.map((item: any) => ({
       id: item.id,
       volumeInfo: {
@@ -40,7 +37,7 @@ export async function searchBooks(query: string): Promise<Book[]> {
       },
     }));
 
-    // 🔥 额外提取作者，去重
+    
     const authorSet = new Set<string>();
     books.forEach((book) => {
       (book.volumeInfo.authors || []).forEach((authorName) => {
@@ -60,7 +57,7 @@ export async function searchBooks(query: string): Promise<Book[]> {
   }
 }
 
-// 获取提取到的作者列表
+
 export async function getAuthors(): Promise<Author[]> {
   return cachedAuthors;
 }

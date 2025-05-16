@@ -19,7 +19,7 @@ import { Ionicons } from '@expo/vector-icons';
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
-// 嵌套的 HomeStack（仅供 HomeTab 使用）
+
 function HomeStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -30,7 +30,7 @@ function HomeStack() {
   );
 }
 
-// 底部标签导航（Tabs）
+
 function BottomTabs() {
   return (
     <Tab.Navigator

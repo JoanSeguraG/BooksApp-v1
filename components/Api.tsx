@@ -33,7 +33,11 @@ export async function searchBooks(query: string): Promise<Book[]> {
         title: item.volumeInfo.title || '',
         authors: item.volumeInfo.authors || [],
         description: item.volumeInfo.description || '',
-        imageLinks: item.volumeInfo.imageLinks || {},
+        imageLinks: item.volumeInfo.imageLinks
+  ? {
+      thumbnail: item.volumeInfo.imageLinks.thumbnail.replace(/^http:\/\//, 'https://')
+    }
+  : undefined,
       },
     }));
 

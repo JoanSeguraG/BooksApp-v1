@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Bookie",
-    "slug": "Bookie",
+    "slug": "SupabaseApp",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/logo.png",
@@ -16,7 +16,7 @@
       "supportsTablet": true
     },
     "android": {
-      "package": "com.elteunom.Bookie",
+      "package": "com.elteunom.supabaseapp",
       "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",

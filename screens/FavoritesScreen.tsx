@@ -1,28 +1,104 @@
-import React, { useState, useCallback } from 'react';
-import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet } from 'react-native';
-import { getFavorites, removeFavorite } from '../lib/favoritesStorage'; 
-import { Book } from '../lib/types'; 
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  FlatList,
+  Image,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect } from '@react-navigation/native';
+import { supabase } from '../lib/supabase';
+import { Book } from '../lib/types';
+import { useAuth } from '../context/AuthContext';
 
 export default function FavoritesScreen() {
+  const { session } = useAuth();
   const [favorites, setFavorites] = useState<Book[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const loadFavorites = async () => {
-    const data = await getFavorites();
-    setFavorites(data as Book[]);
+  useEffect(() => {
+    if (!session?.user?.id) return;
+
+    const fetchFavorites = async () => {
+      setLoading(true);
+
+      const { data, error } = await supabase
+        .from('favorites')
+        .select('*')
+        .eq('user_id', session.user.id);
+
+      if (error) {
+        console.error('Error fetching favorites:', error.message);
+        setLoading(false);
+        return;
+      }
+
+      console.log('Favoritos desde Supabase:', data);
+
+      const books = (data ?? []).map((fav: any) => {
+        let bookData;
+        try {
+          bookData =
+            typeof fav.book_data === 'string'
+              ? JSON.parse(fav.book_data)
+              : fav.book_data;
+        } catch (e) {
+          console.warn('Error parsing book_data:', e);
+          bookData = {};
+        }
+
+        return {
+          id: fav.book_id,
+          volumeInfo: {
+            title: bookData?.title || 'Sin título',
+            authors: bookData?.authors || [],
+            description: bookData?.description || '',
+            imageLinks: bookData?.imageLinks || undefined,
+          },
+        };
+      });
+
+      setFavorites(books);
+      setLoading(false);
+    };
+
+    fetchFavorites();
+  }, [session]);
+
+  const handleRemove = async (bookId: string) => {
+    if (!session?.user?.id) return;
+
+    const { error } = await supabase
+      .from('favorites')
+      .delete()
+      .eq('user_id', session.user.id)
+      .eq('book_id', bookId);
+
+    if (error) {
+      console.error('Error removing favorite:', error.message);
+      return;
+    }
+
+    setFavorites((prev) => prev.filter((book) => book.id !== bookId));
   };
 
-  const handleRemove = async (id: string) => {
-    await removeFavorite(id);
-    await loadFavorites(); 
-  };
+  if (loading) {
+    return (
+      <View style={styles.emptyContainer}>
+        <ActivityIndicator size="large" color="#fff" />
+      </View>
+    );
+  }
 
-  useFocusEffect(
-    useCallback(() => {
-      loadFavorites();
-    }, [])
-  );
+  if (favorites.length === 0) {
+    return (
+      <View style={styles.emptyContainer}>
+        <Text style={styles.emptyText}>No hay libros favoritos aún.</Text>
+      </View>
+    );
+  }
 
   const renderItem = ({ item }: { item: Book }) => (
     <View style={styles.item}>
@@ -37,10 +113,13 @@ export default function FavoritesScreen() {
         </View>
       )}
       <View style={styles.info}>
-        <Text numberOfLines={1} style={styles.title}>{item.volumeInfo.title}</Text>
+        <Text numberOfLines={1} style={styles.title}>
+          {item.volumeInfo.title}
+        </Text>
         {item.volumeInfo.authors && (
           <Text numberOfLines={1} style={styles.authors}>
-            {item.volumeInfo.authors.join(', ')}</Text>
+            {item.volumeInfo.authors.join(', ')}
+          </Text>
         )}
       </View>
       <TouchableOpacity onPress={() => handleRemove(item.id)}>
@@ -52,18 +131,12 @@ export default function FavoritesScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Mi Biblioteca</Text>
-      {favorites.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>No hay libros favoritos aún.</Text>
-        </View>
-      ) : (
-        <FlatList
-          data={favorites}
-          keyExtractor={(item) => item.id}
-          renderItem={renderItem}
-          showsVerticalScrollIndicator={false}
-        />
-      )}
+      <FlatList
+        data={favorites}
+        keyExtractor={(item) => item.id}
+        renderItem={renderItem}
+        showsVerticalScrollIndicator={false}
+      />
     </View>
   );
 }

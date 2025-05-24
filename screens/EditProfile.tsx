@@ -1,45 +1,71 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
-import { useAuth } from '../context/AuthContext'; // Asegúrate de importar correctamente el contexto
-import { supabase } from '../lib/supabase'; // Asegúrate de importar correctamente supabase
+import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
+import { useAuth } from '../context/AuthContext'; // Para obtener la sesión
+import { supabase } from '../lib/supabase';
 
 const EditProfile = ({ navigation }: any) => {
-  const { session, loading, error, updateUserProfile } = useAuth(); // Usamos el contexto para obtener la sesión
+  const { session } = useAuth();
   const [username, setUsername] = useState('');
   const [telefono, setTelefono] = useState('');
   const [loadingSave, setLoadingSave] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
+  // Cargar datos actuales del usuario desde la tabla 'users'
   useEffect(() => {
-    if (session?.user) {
-      setUsername(session.user.user_metadata.username || '');
-      setTelefono(session.user.user_metadata.telefono || '');
-    }
+    const fetchUserData = async () => {
+      if (!session?.user?.id) return;
+
+      const { data, error } = await supabase
+        .from('users')
+        .select('username, telefono')
+        .eq('id', session.user.id)
+        .single();
+
+      if (error) {
+        console.error('Error al cargar datos del usuario:', error.message);
+        setErrorMsg('Error al cargar datos del usuario.');
+      } else if (data) {
+        setUsername(data.username || '');
+        setTelefono(data.telefono ? String(data.telefono) : '');
+      }
+    };
+
+    fetchUserData();
   }, [session]);
 
   const handleSaveProfile = async () => {
     setErrorMsg('');
     setLoadingSave(true);
-  
+
     if (!username || !telefono) {
       setErrorMsg('Por favor, completa todos los campos.');
       setLoadingSave(false);
       return;
     }
-  
+
     try {
-      // Llamamos al método updateUserProfile del contexto
-      await updateUserProfile(username, telefono);
-      navigation.goBack(); // Volver a la pantalla anterior si la actualización es exitosa
+      const { error } = await supabase
+        .from('users')
+        .update({
+          username,
+          telefono: Number(telefono),
+        })
+        .eq('id', session?.user?.id);
+
+      if (error) {
+        console.error('Error al actualizar perfil:', error.message);
+        setErrorMsg('Error al guardar el perfil.');
+      } else {
+        Alert.alert('Éxito', 'Perfil actualizado correctamente');
+        navigation.goBack();
+      }
     } catch (error) {
-      // Maneja el error si algo salió mal
-      setErrorMsg('Error al guardar el perfil.');
-      console.error('Error en la actualización de perfil:', error);
+      console.error('Error inesperado al actualizar perfil:', error);
+      setErrorMsg('Error inesperado al guardar.');
     } finally {
       setLoadingSave(false);
     }
   };
-  
 
   return (
     <View style={styles.container}>

@@ -82,30 +82,53 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const signUp = async (email: string, password: string, username: string) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: { data: { username } },
-      });
+  setLoading(true);
+  setError(null);
 
-      if (error) throw error;
+  try {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { username } },
+    });
 
-      console.log('User signed up:', data);
-      if (data?.session) {
-        console.log('Saving session after sign-up...');
-        await AsyncStorage.setItem('session', JSON.stringify(data.session));
-        setSession(data.session);
+    if (error) throw error;
+
+    const user = data.user;
+
+    if (user) {
+  console.log('Usuario creado con ID:', user.id);
+  const { error: insertError } = await supabase
+    .from('users')
+    .insert([
+      {
+        id: user.id,
+        email: user.email,
+        username: username,
+        telefono: null,
       }
-    } catch (error) {
-      console.error('Sign-up error:', error);
-      setError(error instanceof Error ? error.message : 'Error desconocido durante el registro');
-    } finally {
-      setLoading(false);
+    ]);
+
+  if (insertError) {
+    console.error('Error guardando en users:', insertError);
+    setError('Error guardando usuario en la base de datos: ' + insertError.message);
+    return;
+  } else {
+    console.log('Usuario insertado en users correctamente');
+  }
+}
+
+    if (data.session) {
+      await AsyncStorage.setItem('session', JSON.stringify(data.session));
+      setSession(data.session);
     }
-  };
+
+  } catch (error) {
+    setError(error instanceof Error ? error.message : 'Error desconocido durante el registro');
+  } finally {
+    setLoading(false);
+  }
+};
 
   const login = async (email: string, password: string) => {
     setLoading(true);
@@ -140,56 +163,55 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
   
-  const updateUserProfile = async (username: string, telefono: string) => {
-    if (!session?.user || !session.user.id) {
-      setError('No se pudo actualizar el perfil, el id de usuario no está disponible.');
-      return;
-    }
-  
-    setLoading(true);
-    setError(null);
-  
-    try {
-      // Asegúrate de que los datos sean válidos y los campos estén definidos
-      const { data, error } = await supabase
-        .from('users') // Asumiendo que tienes una tabla 'users' donde guardas los datos
-        .update({
-          username,
-          telefono
-        })
-        .eq('id', session.user.id); // Actualizamos solo al usuario correspondiente
-  
-      if (error) {
-        throw error;
-      }
-  
-      // Si la actualización fue exitosa, actualiza la sesión con los nuevos datos
-      setSession((prevSession) => {
-        if (prevSession) {
-          return {
-            ...prevSession,
-            user: {
-              ...prevSession.user,
-              user_metadata: {
-                ...prevSession.user.user_metadata,
-                username,
-                telefono,
-              },
-            },
-          };
+ const updateUserProfile = async (username: string, telefono: string) => {
+  if (!session?.user || !session.user.id) {
+    setError('No se pudo actualizar el perfil, el id de usuario no está disponible.');
+    return;
+  }
+
+  setLoading(true);
+  setError(null);
+
+  try {
+    const { error } = await supabase
+      .from('users')
+      .update({ username, telefono })
+      .eq('id', session.user.id);
+
+    if (error) throw error;
+
+    // Ahora obtenemos los datos actualizados desde la BD
+    const { data, error: fetchError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', session.user.id)
+      .single();
+
+    if (fetchError) throw fetchError;
+
+    // Actualizamos el contexto con los datos nuevos
+    setSession(prevSession => {
+      if (!prevSession) return prevSession;
+
+      return {
+        ...prevSession,
+        user: {
+          ...prevSession.user,
+          user_metadata: {
+            ...prevSession.user.user_metadata,
+            username: data.username,
+            telefono: data.telefono,
+          }
         }
-        return prevSession;
-      });
-  
-      console.log('Perfil actualizado con éxito');
-    } catch (error) {
-      console.error('Error al actualizar el perfil:', error);
-      setError(error instanceof Error ? error.message : 'Error desconocido al actualizar el perfil');
-    } finally {
-      setLoading(false);
-    }
-  };
-  
+      };
+    });
+
+  } catch (error) {
+    setError(error instanceof Error ? error.message : 'Error desconocido al actualizar el perfil');
+  } finally {
+    setLoading(false);
+  }
+};
   
 
   return (

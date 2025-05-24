@@ -4,7 +4,7 @@ export type RootStackParamList = {
     SearchResults: { query: string };
     BookDetail: { book: Book }; // Usamos el tipo Book aquí
     Favorites: undefined;
-    Profile: undefined;
+    Profile: { refresh?: boolean } | undefined;
     EditProfile: undefined;
     Auth: undefined;
   };

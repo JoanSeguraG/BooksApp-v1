@@ -29,26 +29,46 @@ export default function HomeScreen() {
   ];
 
   useEffect(() => {
-    const fetchUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        const { username } = session.user.user_metadata;
-        setUsername(username);
-      }
-    };
-    fetchUser();
+  const fetchUser = async () => {
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    const user = sessionData?.session?.user;
 
-    const fetchBooksByCategory = async () => {
-      const results: Record<string, any[]> = {};
-      for (const cat of categories) {
-        const data = await searchBooks(cat.query);
-        results[cat.title] = data.slice(0, 5);
-      }
-      setBooksByCategory(results);
-    };
+    if (!user) {
+      console.warn('⚠️ No hay sesión activa o usuario no autenticado');
+      return;
+    }
 
-    fetchBooksByCategory();
-  }, []);
+    const userId = user.id;
+
+    const { data, error } = await supabase
+      .from('users')
+      .select('username')
+      .eq('id', userId)
+      .single();
+
+    if (error) {
+      console.error('❌ Error al obtener username desde users:', error.message);
+    } else if (data) {
+      setUsername(data.username);
+      console.log('✅ Username encontrado:', data.username);
+    } else {
+      console.warn('⚠️ No se encontró ningún usuario con ese ID en tabla users.');
+    }
+  };
+
+  fetchUser();
+
+  const fetchBooksByCategory = async () => {
+    const results: Record<string, any[]> = {};
+    for (const cat of categories) {
+      const data = await searchBooks(cat.query);
+      results[cat.title] = data.slice(0, 5);
+    }
+    setBooksByCategory(results);
+  };
+
+  fetchBooksByCategory();
+}, []);
 
   const handleSearch = () => {
     if (query.trim() !== '') {

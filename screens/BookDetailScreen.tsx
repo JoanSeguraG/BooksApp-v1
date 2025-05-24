@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { useRoute, RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '../lib/types';
-import { addFavorite, removeFavorite, isBookFavorite } from '../lib/favoritesStorage';
+import { supabase } from '../lib/supabase';
 import { Ionicons } from '@expo/vector-icons';
+import { useAuth } from '../context/AuthContext'; // Asegúrate de tener esto
 
 type BookDetailRouteProp = RouteProp<RootStackParamList, 'BookDetail'>;
 
@@ -12,24 +13,72 @@ export default function BookDetailScreen() {
   const { book } = route.params;
   const volume = book.volumeInfo;
 
+  const { session } = useAuth();
+  const userId = session?.user.id;
+
   const [isFavorite, setIsFavorite] = useState(false);
 
   useEffect(() => {
     const checkFavorite = async () => {
-      const fav = await isBookFavorite(book.id);
-      setIsFavorite(fav);
+      if (!userId) return;
+
+      const { data, error } = await supabase
+        .from('favorites')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('book_id', book.id)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error al verificar favorito:', error.message);
+        return;
+      }
+
+      setIsFavorite(!!data);
     };
+
     checkFavorite();
-  }, [book.id]);
+  }, [userId, book.id]);
 
   const toggleFavorite = async () => {
-    if (isFavorite) {
-      await removeFavorite(book.id);
-    } else {
-      await addFavorite(book);
+  if (!userId) {
+    Alert.alert('Error', 'Debes iniciar sesión para guardar favoritos.');
+    return;
+  }
+
+  if (isFavorite) {
+    const { error } = await supabase
+      .from('favorites')
+      .delete()
+      .eq('user_id', userId)
+      .eq('book_id', book.id);
+
+    if (error) {
+      console.error('Error al eliminar favorito:', error.message);
+      Alert.alert('Error', 'No se pudo quitar de favoritos');
+      return;
     }
-    setIsFavorite(!isFavorite);
-  };
+
+    setIsFavorite(false);
+  } else {
+    const { error } = await supabase
+      .from('favorites')
+      .insert({
+        user_id: userId,
+        book_id: book.id,
+        book_data: book.volumeInfo, 
+        created_at: new Date().toISOString(),
+      });
+
+    if (error) {
+      console.error('Error al guardar favorito:', error.message);
+      Alert.alert('Error', 'No se pudo añadir a favoritos');
+      return;
+    }
+
+    setIsFavorite(true);
+  }
+};
 
   return (
     <ScrollView contentContainerStyle={styles.container}>

@@ -64,8 +64,6 @@ export default function SignUp() {
           console.error(dbError); // Verifica si ocurre un error al insertar
         } else {
           Alert.alert('Cuenta creada', 'Tu cuenta ha sido creada con éxito.');
-          // Redirigir a la pantalla de autenticación
-          navigation.navigate('Auth');
         }
       }
     } catch (error) {
@@ -75,6 +73,8 @@ export default function SignUp() {
       setLoading(false);
     }
   };  
+
+  
 
   return (
     <View style={styles.container}>

@@ -3,20 +3,40 @@ import { View, Text, Button, StyleSheet } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../lib/types'; 
+import { RootStackParamList } from '../lib/types';
+import { supabase } from '../lib/supabase';
 
 type ProfileScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Profile'>;
 
 const Profile = () => {
   const { session, logout, loading } = useAuth();
-  const [userInfo, setUserInfo] = useState<any>(null);
+  const [userInfo, setUserInfo] = useState<{ username?: string; email?: string; telefono?: string | null } | null>(null);
 
   const navigation = useNavigation<ProfileScreenNavigationProp>();
 
   useEffect(() => {
-    if (session?.user) {
-      setUserInfo(session.user);
-    }
+    const fetchUserInfo = async () => {
+      if (!session?.user?.id) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('users')
+          .select('username, email, telefono')
+          .eq('id', session.user.id)
+          .single();
+
+        if (error) {
+          console.error('Error fetching user info:', error.message);
+          return;
+        }
+
+        setUserInfo(data);
+      } catch (error) {
+        console.error('Unexpected error fetching user info:', error);
+      }
+    };
+
+    fetchUserInfo();
   }, [session]);
 
   if (!session) {
@@ -33,9 +53,9 @@ const Profile = () => {
 
       {userInfo ? (
         <>
-          <Text style={styles.text}>Nombre: {userInfo?.user_metadata?.username}</Text>
-          <Text style={styles.text}>Email: {userInfo?.email}</Text>
-          <Text style={styles.text}>Teléfono: {userInfo?.user_metadata?.telefono || 'No disponible'}</Text>
+          <Text style={styles.text}>Nombre: {userInfo.username || 'No disponible'}</Text>
+          <Text style={styles.text}>Email: {userInfo.email || 'No disponible'}</Text>
+          <Text style={styles.text}>Teléfono: {userInfo.telefono ?? 'No disponible'}</Text>
         </>
       ) : (
         <Text style={styles.text}>Cargando información del usuario...</Text>
@@ -48,7 +68,7 @@ const Profile = () => {
       />
 
       <View style={{ marginTop: 20 }}>
-        <Button title="Edit profile" onPress={() => navigation.navigate('EditProfile')} />
+        <Button title="Editar perfil" onPress={() => navigation.navigate('EditProfile')} />
       </View>
     </View>
   );

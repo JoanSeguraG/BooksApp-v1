@@ -1,23 +1,38 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
-import { useAuth } from '../context/AuthContext'; // Para obtener la sesión
+import {
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  Alert,
+  TouchableOpacity,
+  Platform,
+  Image,
+  ScrollView,
+} from 'react-native';
+import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 
 const EditProfile = ({ navigation }: any) => {
   const { session } = useAuth();
   const [username, setUsername] = useState('');
   const [telefono, setTelefono] = useState('');
+  const [birthDate, setBirthDate] = useState<Date | null>(null);
+  const [description, setDescription] = useState('');
+  const [location, setLocation] = useState('');
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [loadingSave, setLoadingSave] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
-  // Cargar datos actuales del usuario desde la tabla 'users'
   useEffect(() => {
     const fetchUserData = async () => {
       if (!session?.user?.id) return;
 
       const { data, error } = await supabase
         .from('users')
-        .select('username, telefono')
+        .select('username, telefono, birth_date, description, location')
         .eq('id', session.user.id)
         .single();
 
@@ -27,29 +42,42 @@ const EditProfile = ({ navigation }: any) => {
       } else if (data) {
         setUsername(data.username || '');
         setTelefono(data.telefono ? String(data.telefono) : '');
+        setBirthDate(data.birth_date ? new Date(data.birth_date) : null);
+        setDescription(data.description || '');
+        setLocation(data.location || '');
       }
     };
 
     fetchUserData();
   }, [session]);
 
+  const onChangeDate = (event: any, selectedDate?: Date) => {
+    setShowDatePicker(Platform.OS === 'ios');
+    if (selectedDate) setBirthDate(selectedDate);
+  };
+
   const handleSaveProfile = async () => {
     setErrorMsg('');
     setLoadingSave(true);
 
     if (!username || !telefono) {
-      setErrorMsg('Por favor, completa todos los campos.');
+      setErrorMsg('Por favor, completa todos los campos obligatorios.');
       setLoadingSave(false);
       return;
     }
 
     try {
+      const updates = {
+        username,
+        telefono: Number(telefono),
+        birth_date: birthDate ? birthDate.toISOString().split('T')[0] : null,
+        description,
+        location,
+      };
+
       const { error } = await supabase
         .from('users')
-        .update({
-          username,
-          telefono: Number(telefono),
-        })
+        .update(updates)
         .eq('id', session?.user?.id);
 
       if (error) {
@@ -68,55 +96,142 @@ const EditProfile = ({ navigation }: any) => {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Editar Perfil</Text>
+    <ScrollView contentContainerStyle={styles.container}>
+      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+        <Ionicons name="arrow-back" size={28} color="#e0a43c" />
+      </TouchableOpacity>
+
+      <Text style={styles.title}>Edit profile</Text>
+
+      <View style={styles.avatarContainer}>
+        <Image source={require('../assets/avatar.jpg')} style={styles.avatar} />
+        <TouchableOpacity style={styles.editIcon}>
+          <MaterialIcons name="edit" size={18} color="#fff" />
+        </TouchableOpacity>
+      </View>
 
       <TextInput
-        placeholder="Nombre de usuario"
+        placeholder="Name"
+        placeholderTextColor="#aaa"
         value={username}
         onChangeText={setUsername}
         style={styles.input}
       />
       <TextInput
-        placeholder="Teléfono"
+        placeholder="Phone number"
+        placeholderTextColor="#aaa"
         value={telefono}
         onChangeText={setTelefono}
         keyboardType="phone-pad"
         style={styles.input}
       />
+      <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.input}>
+        <Text style={{ color: birthDate ? '#fff' : '#aaa' }}>
+          {birthDate ? birthDate.toLocaleDateString() : 'Birth date'}
+        </Text>
+      </TouchableOpacity>
+      {showDatePicker && (
+        <DateTimePicker
+          value={birthDate || new Date()}
+          mode="date"
+          display="default"
+          onChange={onChangeDate}
+          maximumDate={new Date()}
+        />
+      )}
+
+      <TextInput
+        placeholder="Description"
+        placeholderTextColor="#aaa"
+        value={description}
+        onChangeText={setDescription}
+        style={[styles.input, { height: 80 }]}
+        multiline
+      />
+      <TextInput
+        placeholder="Location"
+        placeholderTextColor="#aaa"
+        value={location}
+        onChangeText={setLocation}
+        style={styles.input}
+      />
 
       {errorMsg ? <Text style={styles.errorText}>{errorMsg}</Text> : null}
 
-      <Button
-        title={loadingSave ? 'Guardando...' : 'Guardar Cambios'}
+      <TouchableOpacity
+        style={styles.saveButton}
         onPress={handleSaveProfile}
         disabled={loadingSave}
-      />
-    </View>
+      >
+        <Text style={styles.saveButtonText}>
+          {loadingSave ? 'Saving...' : 'Save'}
+        </Text>
+      </TouchableOpacity>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    padding: 24,
-    flex: 1,
-    justifyContent: 'center',
+    padding: 20,
+    backgroundColor: '#111',
+    flexGrow: 1,
+    alignItems: 'center',
+  },
+  backButton: {
+    alignSelf: 'flex-start',
+    marginBottom: 10,
   },
   title: {
-    fontSize: 24,
+    color: '#fff',
+    fontSize: 22,
     fontWeight: 'bold',
+    marginBottom: 16,
+  },
+  avatarContainer: {
+    position: 'relative',
     marginBottom: 24,
-    alignSelf: 'center',
+  },
+  avatar: {
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+  },
+  editIcon: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    backgroundColor: '#e0a43c',
+    borderRadius: 12,
+    padding: 4,
   },
   input: {
-    borderWidth: 1,
-    padding: 10,
-    marginBottom: 12,
+    width: '100%',
+    backgroundColor: '#1e1e1e',
+    color: '#fff',
+    borderRadius: 25,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    marginBottom: 14,
+  },
+  saveButton: {
+    backgroundColor: '#e0a43c',
+    paddingVertical: 14,
+    paddingHorizontal: 40,
+    borderRadius: 25,
+    marginTop: 10,
+    width: '100%',
+    alignItems: 'center',
+  },
+  saveButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
   },
   errorText: {
     color: 'red',
-    marginBottom: 12,
-    marginLeft: 10,
+    marginBottom: 10,
+    textAlign: 'center',
   },
 });
 

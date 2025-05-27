@@ -12,14 +12,17 @@ import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../lib/supabase';
 import { Book } from '../lib/types';
 import { useAuth } from '../context/AuthContext';
+import { useIsFocused } from '@react-navigation/native';
 
 export default function FavoritesScreen() {
   const { session } = useAuth();
+  const isFocused = useIsFocused();
+
   const [favorites, setFavorites] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!session?.user?.id) return;
+    if (!session?.user?.id || !isFocused) return;
 
     const fetchFavorites = async () => {
       setLoading(true);
@@ -34,8 +37,6 @@ export default function FavoritesScreen() {
         setLoading(false);
         return;
       }
-
-      console.log('Favoritos desde Supabase:', data);
 
       const books = (data ?? []).map((fav: any) => {
         let bookData;
@@ -65,7 +66,7 @@ export default function FavoritesScreen() {
     };
 
     fetchFavorites();
-  }, [session]);
+  }, [session, isFocused]);
 
   const handleRemove = async (bookId: string) => {
     if (!session?.user?.id) return;

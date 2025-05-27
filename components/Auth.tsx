@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet } from 'react-native';
+import { View, Text, TextInput, StyleSheet, Image } from 'react-native';
 import { Button } from '@rneui/themed';
 import { supabase } from '../lib/supabase';
 import { useNavigation } from '@react-navigation/native';
-
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../lib/types';
 
 type AuthScreenNavigationProp = NativeStackNavigationProp<RootStackParamList>;
+
 const Auth = () => {
   const navigation = useNavigation<AuthScreenNavigationProp>();
 
@@ -29,7 +29,7 @@ const Auth = () => {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
-        password
+        password,
       });
 
       if (error) {
@@ -52,8 +52,11 @@ const Auth = () => {
     <View style={styles.container}>
       <Text style={styles.title}>Iniciar sesión</Text>
 
+      <Image source={require('../assets/logo.png')} style={styles.logo} />
+
       <TextInput
         placeholder="Email"
+        placeholderTextColor="#aaa"
         value={email}
         onChangeText={setEmail}
         style={styles.input}
@@ -61,6 +64,7 @@ const Auth = () => {
       />
       <TextInput
         placeholder="Contraseña"
+        placeholderTextColor="#aaa"
         value={password}
         onChangeText={setPassword}
         secureTextEntry
@@ -74,14 +78,15 @@ const Auth = () => {
         onPress={handleLogin}
         loading={loading}
         buttonStyle={styles.button}
+        titleStyle={{ fontWeight: 'bold' }}
       />
 
-      {/* Botón de Sign Up */}
       <Button
         title="¿No tienes una cuenta? Regístrate"
         onPress={() => navigation.navigate('SignUp')}
         containerStyle={styles.signupButtonContainer}
         type="clear"
+        titleStyle={{ color: '#f9a825' }}
       />
     </View>
   );
@@ -89,35 +94,54 @@ const Auth = () => {
 
 const styles = StyleSheet.create({
   container: {
-    padding: 24,
+    padding: 20,
     flex: 1,
-    justifyContent: 'center'
+    justifyContent: 'center',
+    backgroundColor: '#111', // igual que EditProfile
   },
   title: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: 'bold',
+    marginBottom: 16,
+    alignSelf: 'center',
+    color: '#fff',
+  },
+  logo: {
+    width: 90,
+    height: 90,
+    alignSelf: 'center',
     marginBottom: 24,
-    alignSelf: 'center'
+    resizeMode: 'contain',
   },
   input: {
-    borderWidth: 1,
-    padding: 10,
-    marginBottom: 12,
-    borderRadius: 6,
-    borderColor: '#ccc'
+    width: '100%',
+    backgroundColor: '#1e1e1e', 
+    color: '#fff',
+    borderRadius: 25,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    marginBottom: 14,
   },
+
   errorText: {
     color: 'red',
-    marginBottom: 12,
-    marginLeft: 10
+    marginBottom: 10,
+    textAlign: 'center',
   },
   button: {
-    marginTop: 12,
-    backgroundColor: '#000'
+    backgroundColor: '#e0a43c', 
+    paddingVertical: 14,
+    borderRadius: 25,
+    marginTop: 10,
   },
   signupButtonContainer: {
-    marginTop: 20
-  }
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  signupButtonTitle: {
+    color: '#e0a43c',
+    fontWeight: 'bold',
+  },
 });
 
 export default Auth;

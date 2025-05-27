@@ -39,7 +39,7 @@ function BottomTabs() {
         tabBarActiveTintColor: '#fff',
         tabBarInactiveTintColor: '#aaa',
         tabBarStyle: {
-          backgroundColor: '#000',
+          backgroundColor: '#202020',
           borderTopWidth: 0,
         },
         tabBarIcon: ({ color, size }) => {

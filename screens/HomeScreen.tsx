@@ -1,15 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View, Text, Image, StyleSheet, Button, Alert,
   TextInput, TouchableOpacity, ScrollView
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../lib/types'; // Ajusta la ruta según tu estructura
+import { RootStackParamList } from '../lib/types';
 import { addFavorite } from '../lib/favoritesStorage';
 import { supabase } from '../lib/supabase';
 import { searchBooks } from '../components/Api';
-
 
 type HomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
 
@@ -17,9 +16,7 @@ export default function HomeScreen() {
   const navigation = useNavigation<HomeScreenNavigationProp>();
   const [username, setUsername] = useState('');
   const [query, setQuery] = useState('');
-  const [books, setBooks] = useState([]);
   const [booksByCategory, setBooksByCategory] = useState<Record<string, any[]>>({});
-  
 
   const categories = [
     { title: 'Ficción', query: 'fiction' },
@@ -28,47 +25,39 @@ export default function HomeScreen() {
     { title: 'Romance', query: 'romance' }
   ];
 
-  useEffect(() => {
-  const fetchUser = async () => {
-    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-    const user = sessionData?.session?.user;
+  useFocusEffect(
+    useCallback(() => {
+      const fetchUser = async () => {
+        const { data: sessionData } = await supabase.auth.getSession();
+        const user = sessionData?.session?.user;
+        if (!user) return;
 
-    if (!user) {
-      console.warn('⚠️ No hay sesión activa o usuario no autenticado');
-      return;
-    }
+        const { data, error } = await supabase
+          .from('users')
+          .select('username')
+          .eq('id', user.id)
+          .single();
 
-    const userId = user.id;
+        if (data) {
+          setUsername(data.username);
+        } else {
+          console.error('Error fetching username:', error?.message);
+        }
+      };
 
-    const { data, error } = await supabase
-      .from('users')
-      .select('username')
-      .eq('id', userId)
-      .single();
+      const fetchBooksByCategory = async () => {
+        const results: Record<string, any[]> = {};
+        for (const cat of categories) {
+          const data = await searchBooks(cat.query);
+          results[cat.title] = data.slice(0, 5);
+        }
+        setBooksByCategory(results);
+      };
 
-    if (error) {
-      console.error('❌ Error al obtener username desde users:', error.message);
-    } else if (data) {
-      setUsername(data.username);
-      console.log('✅ Username encontrado:', data.username);
-    } else {
-      console.warn('⚠️ No se encontró ningún usuario con ese ID en tabla users.');
-    }
-  };
-
-  fetchUser();
-
-  const fetchBooksByCategory = async () => {
-    const results: Record<string, any[]> = {};
-    for (const cat of categories) {
-      const data = await searchBooks(cat.query);
-      results[cat.title] = data.slice(0, 5);
-    }
-    setBooksByCategory(results);
-  };
-
-  fetchBooksByCategory();
-}, []);
+      fetchUser();
+      fetchBooksByCategory();
+    }, [])
+  );
 
   const handleSearch = () => {
     if (query.trim() !== '') {
@@ -83,7 +72,7 @@ export default function HomeScreen() {
     } else {
       navigation.reset({
         index: 0,
-        routes: [{ name: 'Auth' }]  // Asegúrate de que 'Auth' también esté registrado en el AppNavigator
+        routes: [{ name: 'Auth' }]
       });
     }
   };
@@ -114,7 +103,7 @@ export default function HomeScreen() {
               return (
                 <TouchableOpacity
                   key={item.id}
-                  onPress={() => navigation.navigate('BookDetail', { book: item })}  // Verifica que 'BookDetail' esté registrado
+                  onPress={() => navigation.navigate('BookDetail', { book: item })}
                   style={styles.bookItem}
                 >
                   <Image
@@ -129,9 +118,6 @@ export default function HomeScreen() {
         </View>
       ))}
 
-      <View style={{ marginTop: 30 }}>
-        <Button title="Cerrar sesión" onPress={handleLogout} color="red" />
-      </View>
     </ScrollView>
   );
 }

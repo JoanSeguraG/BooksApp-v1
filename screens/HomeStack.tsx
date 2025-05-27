@@ -5,6 +5,7 @@ import SearchResultsScreen from '../screens/SearchResultsScreen';
 import BookDetailScreen from '../screens/BookDetailScreen';
 import EditProfile from '../screens/EditProfile';
 
+
 const Stack = createNativeStackNavigator();
 
 export default function HomeStack() {

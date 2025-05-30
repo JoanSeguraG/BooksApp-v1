@@ -1,5 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Alert,
+  Linking,
+} from 'react-native';
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
 import { RootStackParamList } from '../lib/types';
 import { supabase } from '../lib/supabase';
@@ -81,6 +90,25 @@ export default function BookDetailScreen() {
     }
   };
 
+  const handleBuyPress = async () => {
+    if (!volume.title) {
+      Alert.alert('Error', 'No hay título disponible para buscar el libro.');
+      return;
+    }
+
+    const query = encodeURIComponent(volume.title);
+    const url = `https://www.amazon.es/s?k=${query}&__mk_es_ES=ÅMÅŽÕÑ&crid=32RGVHWDWHEFW&sprefix=horror+fiction%2Caps%2C77&ref=nb_sb_noss_1`;
+
+    console.log('Abriendo Amazon con búsqueda:', url);
+
+    const supported = await Linking.canOpenURL(url);
+    if (supported) {
+      Linking.openURL(url);
+    } else {
+      Alert.alert('Error', 'No se pudo abrir el enlace de Amazon.');
+    }
+  };
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <TouchableOpacity
@@ -108,6 +136,11 @@ export default function BookDetailScreen() {
         <Text style={styles.buttonText}>
           {isFavorite ? 'Quitar de favoritos' : 'Añadir a favoritos'}
         </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.buyButton} onPress={handleBuyPress}>
+        <Ionicons name="cart" size={24} color="#fff" />
+        <Text style={styles.buttonText}>Buy Now</Text>
       </TouchableOpacity>
     </ScrollView>
   );
@@ -148,6 +181,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#4E5D78',
+    padding: 10,
+    borderRadius: 8,
+    marginTop: 10,
+  },
+  buyButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#2B8A3E',
     padding: 10,
     borderRadius: 8,
     marginTop: 10,

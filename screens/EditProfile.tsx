@@ -14,16 +14,21 @@ import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 
 const EditProfile = ({ navigation }: any) => {
   const { session } = useAuth();
+
   const [username, setUsername] = useState('');
   const [telefono, setTelefono] = useState('');
   const [birthDate, setBirthDate] = useState<Date | null>(null);
   const [description, setDescription] = useState('');
   const [location, setLocation] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [loadingSave, setLoadingSave] = useState(false);
+  const [loadingAvatar, setLoadingAvatar] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
   useEffect(() => {
@@ -32,7 +37,7 @@ const EditProfile = ({ navigation }: any) => {
 
       const { data, error } = await supabase
         .from('users')
-        .select('username, telefono, birth_date, description, location')
+        .select('username, telefono, birth_date, description, location, avatar_url')
         .eq('id', session.user.id)
         .single();
 
@@ -45,6 +50,7 @@ const EditProfile = ({ navigation }: any) => {
         setBirthDate(data.birth_date ? new Date(data.birth_date) : null);
         setDescription(data.description || '');
         setLocation(data.location || '');
+        setAvatarUrl(data.avatar_url || null);
       }
     };
 
@@ -73,6 +79,7 @@ const EditProfile = ({ navigation }: any) => {
         birth_date: birthDate ? birthDate.toISOString().split('T')[0] : null,
         description,
         location,
+        avatar_url: avatarUrl,  // También actualizar avatar_url aquí
       };
 
       const { error } = await supabase
@@ -95,6 +102,70 @@ const EditProfile = ({ navigation }: any) => {
     }
   };
 
+  // Función para seleccionar y subir imagen
+  const handleImagePick = async () => {
+    try {
+      setLoadingAvatar(true);
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.7,
+      });
+
+      if (!result.canceled) {
+        const file = result.assets[0];
+        if (!session?.user?.id) {
+          Alert.alert('Error', 'No estás autenticado');
+          setLoadingAvatar(false);
+          return;
+        }
+
+        // Convertir URI a blob
+        const response = await fetch(file.uri);
+        const blob = await response.blob();
+
+        const filePath = `${session.user.id}/${Date.now()}-${file.fileName || 'avatar.jpg'}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('avatars')
+          .upload(filePath, blob, {
+            cacheControl: '3600',
+            upsert: true,
+            contentType: blob.type,
+          });
+
+        if (uploadError) {
+          console.error('Error al subir imagen:', uploadError.message);
+          Alert.alert('Error', 'No se pudo subir la imagen');
+          setLoadingAvatar(false);
+          return;
+        }
+
+        const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(filePath);
+        const publicUrl = urlData.publicUrl;
+
+        setAvatarUrl(publicUrl);
+
+        // Actualizar avatar_url en la tabla users
+        const { error: updateError } = await supabase
+          .from('users')
+          .update({ avatar_url: publicUrl })
+          .eq('id', session.user.id);
+
+        if (updateError) {
+          console.error('Error al actualizar avatar en perfil:', updateError.message);
+          Alert.alert('Error', 'No se pudo actualizar la imagen de perfil');
+        }
+      }
+    } catch (e) {
+      console.error('Error inesperado:', e);
+      Alert.alert('Error', 'Ocurrió un error inesperado al seleccionar la imagen');
+    } finally {
+      setLoadingAvatar(false);
+    }
+  };
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
@@ -103,12 +174,15 @@ const EditProfile = ({ navigation }: any) => {
 
       <Text style={styles.title}>Edit profile</Text>
 
-      <View style={styles.avatarContainer}>
-        <Image source={require('../assets/avatar.jpg')} style={styles.avatar} />
-        <TouchableOpacity style={styles.editIcon}>
-          <MaterialIcons name="edit" size={18} color="#fff" />
-        </TouchableOpacity>
-      </View>
+      <TouchableOpacity style={styles.avatarContainer} onPress={handleImagePick} disabled={loadingAvatar}>
+        <Image
+          source={avatarUrl ? { uri: avatarUrl } : require('../assets/avatar.jpg')}
+          style={styles.avatar}
+        />
+        <View style={styles.editIcon}>
+          <MaterialIcons name={loadingAvatar ? 'hourglass-top' : 'edit'} size={18} color="#fff" />
+        </View>
+      </TouchableOpacity>
 
       <TextInput
         placeholder="Name"

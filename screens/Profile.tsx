@@ -13,6 +13,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../lib/types';
 import { supabase } from '../lib/supabase';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 
 type ProfileScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Profile'>;
 
@@ -27,7 +28,9 @@ const Profile = () => {
     birth_date?: string | null;
     description?: string | null;
     location?: string | null;
+    avatar_url?: string | null;
   } | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -36,21 +39,70 @@ const Profile = () => {
 
         const { data, error } = await supabase
           .from('users')
-          .select('username, email, telefono, birth_date, description, location')
+          .select('username, email, telefono, birth_date, description, location, avatar_url')
           .eq('id', session.user.id)
           .single();
 
-        if (error) {
-          console.error('Error fetching user info:', error.message);
-          return;
+        if (!error && data) {
+          setUserInfo(data);
+          setAvatarUrl(data.avatar_url);
+        } else {
+          console.error('Error fetching user info:', error?.message);
         }
-
-        setUserInfo(data);
       };
 
       fetchUserInfo();
     }, [session])
   );
+
+  const handleImagePick = async () => {
+  const result = await ImagePicker.launchImageLibraryAsync({
+    mediaTypes: ImagePicker.MediaTypeOptions.Images,
+    allowsEditing: true,
+    aspect: [1, 1],
+    quality: 0.7,
+  });
+
+  if (!result.canceled) {
+    const file = result.assets[0];
+    if (!session?.user?.id) return;
+
+    // Convertir URI a Blob
+    const response = await fetch(file.uri);
+    const blob = await response.blob();
+
+    const filePath = `${session.user.id}/${Date.now()}-${file.fileName || 'avatar.jpg'}`;
+
+    // Subir Blob a Supabase Storage
+    const { error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(filePath, blob, {
+        cacheControl: '3600',
+        upsert: true,
+        contentType: blob.type,
+      });
+
+    if (uploadError) {
+      console.error('Upload error:', uploadError.message);
+      return;
+    }
+
+    // Obtener URL pública
+    const { data: urlData } = supabase.storage
+      .from('avatars')
+      .getPublicUrl(filePath);
+
+    const publicUrl = urlData.publicUrl;
+    setAvatarUrl(publicUrl);
+
+    // Actualizar URL en perfil de usuario
+    await supabase
+      .from('users')
+      .update({ avatar_url: publicUrl })
+      .eq('id', session.user.id);
+  }
+};
+
 
   if (!session) {
     return (
@@ -63,24 +115,29 @@ const Profile = () => {
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
       <View style={styles.container}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Ionicons name="arrow-back" size={28} color="#f9a825" />
-        </TouchableOpacity>
+        <View style={styles.topRow}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
+            <Ionicons name="arrow-back" size={28} color="#f9a825" />
+          </TouchableOpacity>
 
-        <View style={styles.header}>
-          <Image
-            source={require('../assets/avatar.jpg')}
-            style={styles.avatar}
-          />
           <TouchableOpacity
             style={styles.editIcon}
             onPress={() => navigation.navigate('EditProfile')}
           >
             <MaterialIcons name="edit" size={20} color="#fff" />
           </TouchableOpacity>
+        </View>
+
+        <View style={styles.header}>
+          <View style={styles.avatarWrapper}>
+            <Image
+              source={avatarUrl ? { uri: avatarUrl } : require('../assets/avatar.jpg')}
+              style={styles.avatar}
+            />
+          </View>
           <Text style={styles.username}>{userInfo?.username || 'Nombre'}</Text>
           <Text style={styles.subtitle}>{userInfo?.description || 'Descripción breve'}</Text>
         </View>
@@ -119,7 +176,7 @@ const InfoRow = ({ icon, label, value }: { icon: any; label: string; value?: str
 const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
-    backgroundColor: '#111', // más claro que negro puro
+    backgroundColor: '#111',
     paddingBottom: 40,
   },
   container: {
@@ -132,13 +189,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#111',
   },
-  backButton: {
-    alignSelf: 'flex-start',
+  topRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 10,
+  },
+  backButton: {
+    padding: 6,
+  },
+  editIcon: {
+    backgroundColor: '#333',
+    borderRadius: 20,
+    padding: 6,
   },
   header: {
     alignItems: 'center',
     marginBottom: 30,
+  },
+  avatarWrapper: {
     position: 'relative',
   },
   avatar: {
@@ -146,13 +215,13 @@ const styles = StyleSheet.create({
     height: 100,
     borderRadius: 50,
   },
-  editIcon: {
+  avatarEditIcon: {
     position: 'absolute',
-    top: 0,
+    bottom: 0,
     right: 0,
-    backgroundColor: '#333',
-    borderRadius: 20,
-    padding: 6,
+    backgroundColor: '#f9a825',
+    padding: 4,
+    borderRadius: 12,
   },
   username: {
     color: '#f9a825',
@@ -164,6 +233,7 @@ const styles = StyleSheet.create({
     color: '#999',
     fontSize: 14,
     marginTop: 4,
+    textAlign: 'center',
   },
   infoSection: {
     marginTop: 10,
@@ -189,20 +259,20 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   logoutButton: {
-  backgroundColor: '#d44f4f', // rojo suave, no saturado
-  paddingVertical: 14,
-  paddingHorizontal: 40,
-  borderRadius: 25,
-  alignItems: 'center',
-  alignSelf: 'center',
-  width: '100%',
-},
-logoutText: {
-  color: '#fff',
-  fontWeight: 'bold',
-  fontSize: 16,
-  textTransform: 'uppercase',
-},
+    backgroundColor: '#d44f4f',
+    paddingVertical: 14,
+    paddingHorizontal: 40,
+    borderRadius: 25,
+    alignItems: 'center',
+    alignSelf: 'center',
+    width: '100%',
+  },
+  logoutText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
+    textTransform: 'uppercase',
+  },
   title: {
     color: '#fff',
     fontSize: 22,

@@ -1,15 +1,18 @@
+// ✅ Updated AppNavigator.tsx: Search tab now uses HomeScreen layout
+
 import React from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import Auth from '../components/Auth';
 import SignUp from './SignUp';
 
-import HomeScreen from './HomeScreen';
+import NewHomeScreen from './NewHomeScreen'; // New Inicio page
 import FavoritesScreen from './FavoritesScreen';
-import SearchResultsScreen from './SearchResultsScreen';
+import HomeScreen from './HomeScreen'; // ← now used as Buscar tab
 import BookDetailScreen from './BookDetailScreen';
 import Profile from './Profile';
 import EditProfile from './EditProfile';
+import SearchResultsScreen from './SearchResultsScreen';
 
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -19,17 +22,15 @@ import { Ionicons } from '@expo/vector-icons';
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
-
-function HomeStack() {
+function SearchStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Home" component={HomeScreen} />
-      <Stack.Screen name="BookDetail" component={BookDetailScreen} />
       <Stack.Screen name="SearchResults" component={SearchResultsScreen} />
+      <Stack.Screen name="BookDetail" component={BookDetailScreen} />
     </Stack.Navigator>
   );
 }
-
 
 function BottomTabs() {
   return (
@@ -54,9 +55,9 @@ function BottomTabs() {
         },
       })}
     >
-      <Tab.Screen name="HomeTab" component={HomeStack} options={{ title: 'Inicio' }} />
+      <Tab.Screen name="HomeTab" component={NewHomeScreen} options={{ title: 'Inicio' }} />
       <Tab.Screen name="FavoritesTab" component={FavoritesScreen} options={{ title: 'Favoritos' }} />
-      <Tab.Screen name="SearchTab" component={SearchResultsScreen} options={{ title: 'Buscar' }} />
+      <Tab.Screen name="SearchTab" component={SearchStack} options={{ title: 'Buscar' }} />
       <Tab.Screen name="ProfileTab" component={Profile} options={{ title: 'Perfil' }} />
     </Tab.Navigator>
   );

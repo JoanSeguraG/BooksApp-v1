@@ -83,7 +83,7 @@ export default function HomeScreen() {
   };
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: '#000' }} contentContainerStyle={styles.container}>
+    <ScrollView style={{ flex: 1, backgroundColor: '#111' }} contentContainerStyle={styles.container}>
       <Text style={styles.greeting}>¡Hola, {username}!</Text>
 
       <TextInput

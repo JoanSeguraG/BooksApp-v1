@@ -79,7 +79,7 @@ const EditProfile = ({ navigation }: any) => {
         birth_date: birthDate ? birthDate.toISOString().split('T')[0] : null,
         description,
         location,
-        avatar_url: avatarUrl,  // También actualizar avatar_url aquí
+        avatar_url: avatarUrl,
       };
 
       const { error } = await supabase
@@ -102,10 +102,17 @@ const EditProfile = ({ navigation }: any) => {
     }
   };
 
-  // Función para seleccionar y subir imagen
   const handleImagePick = async () => {
     try {
       setLoadingAvatar(true);
+
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (permissionResult.status !== 'granted') {
+        Alert.alert('Permiso denegado', 'Se necesita permiso para acceder a tus fotos.');
+        setLoadingAvatar(false);
+        return;
+      }
+
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
@@ -113,50 +120,56 @@ const EditProfile = ({ navigation }: any) => {
         quality: 0.7,
       });
 
-      if (!result.canceled) {
-        const file = result.assets[0];
-        if (!session?.user?.id) {
-          Alert.alert('Error', 'No estás autenticado');
-          setLoadingAvatar(false);
-          return;
-        }
+      if (result.canceled) {
+        setLoadingAvatar(false);
+        return;
+      }
 
-        // Convertir URI a blob
-        const response = await fetch(file.uri);
-        const blob = await response.blob();
+      const file = result.assets[0];
+      if (!session?.user?.id) {
+        Alert.alert('Error', 'No estás autenticado');
+        setLoadingAvatar(false);
+        return;
+      }
 
-        const filePath = `${session.user.id}/${Date.now()}-${file.fileName || 'avatar.jpg'}`;
+      // Conversión URI -> Blob (compatibilidad Android)
+      const blob: Blob = await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.onload = () => resolve(xhr.response);
+        xhr.onerror = () => reject(new Error('Error al cargar imagen'));
+        xhr.responseType = 'blob';
+        xhr.open('GET', file.uri, true);
+        xhr.send(null);
+      });
 
-        const { error: uploadError } = await supabase.storage
-          .from('avatars')
-          .upload(filePath, blob, {
-            cacheControl: '3600',
-            upsert: true,
-            contentType: blob.type,
-          });
+      const filePath = `${session.user.id}/${Date.now()}-${file.fileName || 'avatar.jpg'}`;
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, blob, {
+          cacheControl: '3600',
+          upsert: true,
+          contentType: blob.type,
+        });
 
-        if (uploadError) {
-          console.error('Error al subir imagen:', uploadError.message);
-          Alert.alert('Error', 'No se pudo subir la imagen');
-          setLoadingAvatar(false);
-          return;
-        }
+      if (uploadError) {
+        console.error('Error al subir imagen:', uploadError.message);
+        Alert.alert('Error', 'No se pudo subir la imagen');
+        setLoadingAvatar(false);
+        return;
+      }
 
-        const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(filePath);
-        const publicUrl = urlData.publicUrl;
+      const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(filePath);
+      const publicUrl = urlData.publicUrl;
+      setAvatarUrl(publicUrl);
 
-        setAvatarUrl(publicUrl);
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({ avatar_url: publicUrl })
+        .eq('id', session.user.id);
 
-        // Actualizar avatar_url en la tabla users
-        const { error: updateError } = await supabase
-          .from('users')
-          .update({ avatar_url: publicUrl })
-          .eq('id', session.user.id);
-
-        if (updateError) {
-          console.error('Error al actualizar avatar en perfil:', updateError.message);
-          Alert.alert('Error', 'No se pudo actualizar la imagen de perfil');
-        }
+      if (updateError) {
+        console.error('Error al actualizar avatar en perfil:', updateError.message);
+        Alert.alert('Error', 'No se pudo actualizar la imagen de perfil');
       }
     } catch (e) {
       console.error('Error inesperado:', e);
@@ -213,7 +226,6 @@ const EditProfile = ({ navigation }: any) => {
           maximumDate={new Date()}
         />
       )}
-
       <TextInput
         placeholder="Description"
         placeholderTextColor="#aaa"
@@ -229,9 +241,7 @@ const EditProfile = ({ navigation }: any) => {
         onChangeText={setLocation}
         style={styles.input}
       />
-
       {errorMsg ? <Text style={styles.errorText}>{errorMsg}</Text> : null}
-
       <TouchableOpacity
         style={styles.saveButton}
         onPress={handleSaveProfile}

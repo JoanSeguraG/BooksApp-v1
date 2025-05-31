@@ -1,5 +1,3 @@
-// ✅ NewHomeScreen.tsx — shows recommended and new release books in fixed 4x5 layout with user info
-
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, Image, StyleSheet, ScrollView, TouchableOpacity
@@ -15,26 +13,36 @@ export default function NewHomeScreen() {
   const [recommendedBooks, setRecommendedBooks] = useState<any[]>([]);
   const [newReleases, setNewReleases] = useState<any[]>([]);
   const [username, setUsername] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState('');
 
   useEffect(() => {
     const fetchData = async () => {
       const rec = await searchBooks('best seller');
       const recent = await searchBooks('new release');
-      setRecommendedBooks(rec.slice(0, 12)); // 4 columns x 3 rows
-      setNewReleases(recent.slice(0, 12)); // 4 columns x 3 rows
+      setRecommendedBooks(rec.slice(0, 12));
+      setNewReleases(recent.slice(0, 12));
 
       const { data: sessionData } = await supabase.auth.getSession();
       const user = sessionData?.session?.user;
+
       if (user) {
-        const { data } = await supabase.from('users').select('username').eq('id', user.id).single();
-        if (data?.username) setUsername(data.username);
+        const { data } = await supabase
+          .from('users')
+          .select('username, avatar_url')
+          .eq('id', user.id)
+          .single();
+
+        if (data) {
+          setUsername(data.username);
+          setAvatarUrl(data.avatar_url);
+        }
       }
     };
     fetchData();
   }, []);
 
   const renderBookGrid = (title: string, books: any[]) => (
-    <View style={{ marginBottom: 30, backgroundColor: '#000' }}>
+    <View style={{ marginBottom: 30 }}>
       <Text style={styles.sectionTitle}>{title}</Text>
       <View style={styles.gridContainer}>
         {books.map((book) => {
@@ -61,14 +69,20 @@ export default function NewHomeScreen() {
   );
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#000' }}>
+    <View style={{ flex: 1, backgroundColor: '#111' }}>
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.topBar}>
-          <Text style={styles.header}>Bienvenido, <Text style={styles.highlight}>{username}</Text> 👋</Text>
-          <Image source={require('../assets/avatar.jpg')} style={styles.avatar} />
+          <Text style={styles.header}>
+            Bienvenido, <Text style={styles.highlight}>{username}</Text> 👋
+          </Text>
+          {avatarUrl ? (
+            <Image source={{ uri: avatarUrl }} style={styles.avatar} />
+          ) : (
+            <View style={[styles.avatar, styles.avatarPlaceholder]} />
+          )}
         </View>
-        {renderBookGrid(' Recomendados', recommendedBooks)}
-        {renderBookGrid(' Nuevos lanzamientos', newReleases)}
+        {renderBookGrid('Recomendados', recommendedBooks)}
+        {renderBookGrid('Nuevos lanzamientos', newReleases)}
       </ScrollView>
     </View>
   );
@@ -78,7 +92,7 @@ const styles = StyleSheet.create({
   container: {
     padding: 12,
     paddingBottom: 60,
-    backgroundColor: '#000000',
+    backgroundColor: '#111',
   },
   topBar: {
     flexDirection: 'row',
@@ -98,6 +112,9 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
+  },
+  avatarPlaceholder: {
+    backgroundColor: '#333',
   },
   sectionTitle: {
     fontSize: 18,

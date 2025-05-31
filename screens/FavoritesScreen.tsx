@@ -91,7 +91,7 @@ export default function FavoritesScreen() {
   if (loading) {
     return (
       <View style={styles.emptyContainer}>
-        <ActivityIndicator size="large" color="#fff" />
+        <ActivityIndicator size="large" color="#FFA726" />
       </View>
     );
   }
@@ -128,7 +128,7 @@ export default function FavoritesScreen() {
           )}
         </View>
         <TouchableOpacity onPress={() => handleRemove(item.id)}>
-          <Ionicons name="trash-outline" size={24} color="#fff" />
+          <Ionicons name="trash-outline" size={24} color="#FFA726" />
         </TouchableOpacity>
       </View>
     </TouchableOpacity>
@@ -156,13 +156,13 @@ const styles = StyleSheet.create({
   },
   header: {
     fontSize: 24,
-    color: '#fff',
+    color: '#FFA726',
     marginBottom: 16,
     fontWeight: 'bold',
   },
   item: {
     flexDirection: 'row',
-    backgroundColor: '#222',
+    backgroundColor: '#111',
     padding: 12,
     borderRadius: 12,
     marginBottom: 12,
@@ -200,6 +200,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#000'
   },
   emptyText: {
     color: '#888',

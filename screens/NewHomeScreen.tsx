@@ -12,8 +12,7 @@ export default function NewHomeScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [recommendedBooks, setRecommendedBooks] = useState<any[]>([]);
   const [newReleases, setNewReleases] = useState<any[]>([]);
-  const [username, setUsername] = useState('');
-  const [avatarUrl, setAvatarUrl] = useState('');
+  const [username, setUsername] = useState('Usuario');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -28,13 +27,12 @@ export default function NewHomeScreen() {
       if (user) {
         const { data } = await supabase
           .from('users')
-          .select('username, avatar_url')
+          .select('username')
           .eq('id', user.id)
           .single();
 
-        if (data) {
+        if (data?.username) {
           setUsername(data.username);
-          setAvatarUrl(data.avatar_url);
         }
       }
     };
@@ -75,11 +73,10 @@ export default function NewHomeScreen() {
           <Text style={styles.header}>
             Bienvenido, <Text style={styles.highlight}>{username}</Text> 👋
           </Text>
-          {avatarUrl ? (
-            <Image source={{ uri: avatarUrl }} style={styles.avatar} />
-          ) : (
-            <View style={[styles.avatar, styles.avatarPlaceholder]} />
-          )}
+          <Image
+            source={require('../assets/avatar.jpg')}
+            style={styles.avatar}
+          />
         </View>
         {renderBookGrid('Recomendados', recommendedBooks)}
         {renderBookGrid('Nuevos lanzamientos', newReleases)}
@@ -104,6 +101,8 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: 'bold',
     color: '#fff',
+    flex: 1,
+    marginRight: 10,
   },
   highlight: {
     color: '#FFA726',
@@ -112,9 +111,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-  },
-  avatarPlaceholder: {
-    backgroundColor: '#333',
   },
   sectionTitle: {
     fontSize: 18,

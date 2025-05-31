@@ -1,5 +1,4 @@
 {
-  "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
     "noImplicitAny": false,
@@ -8,11 +7,23 @@
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "react-native",               // ← NECESARIO para JSX
-    "lib": ["es2015", "dom"],           // ← NECESARIO para Promise y más
-    "types": ["react", "react-native"]  // ← NECESARIO para tipos
+    "jsx": "react-native",
+    "lib": [
+      "es2015",
+      "dom"
+    ],
+    "types": [
+      "react",
+      "react-native"
+    ]
   },
-  "include": ["**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules", "babel.config.js"]
+  "include": [
+    "**/*.ts",
+    "**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules",
+    "babel.config.js"
+  ],
+  "extends": "expo/tsconfig.base"
 }
-

@@ -13,8 +13,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { Ionicons, MaterialIcons } from '@expo/vector-icons';
-import * as ImagePicker from 'expo-image-picker';
+import { Ionicons } from '@expo/vector-icons';
 
 const EditProfile = ({ navigation }: any) => {
   const { session } = useAuth();
@@ -28,7 +27,6 @@ const EditProfile = ({ navigation }: any) => {
 
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [loadingSave, setLoadingSave] = useState(false);
-  const [loadingAvatar, setLoadingAvatar] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
   useEffect(() => {
@@ -102,83 +100,6 @@ const EditProfile = ({ navigation }: any) => {
     }
   };
 
-  const handleImagePick = async () => {
-    try {
-      setLoadingAvatar(true);
-
-      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (permissionResult.status !== 'granted') {
-        Alert.alert('Permiso denegado', 'Se necesita permiso para acceder a tus fotos.');
-        setLoadingAvatar(false);
-        return;
-      }
-
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 0.7,
-      });
-
-      if (result.canceled) {
-        setLoadingAvatar(false);
-        return;
-      }
-
-      const file = result.assets[0];
-      if (!session?.user?.id) {
-        Alert.alert('Error', 'No estás autenticado');
-        setLoadingAvatar(false);
-        return;
-      }
-
-      // Conversión URI -> Blob (compatibilidad Android)
-      const blob: Blob = await new Promise((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.onload = () => resolve(xhr.response);
-        xhr.onerror = () => reject(new Error('Error al cargar imagen'));
-        xhr.responseType = 'blob';
-        xhr.open('GET', file.uri, true);
-        xhr.send(null);
-      });
-
-      const filePath = `${session.user.id}/${Date.now()}-${file.fileName || 'avatar.jpg'}`;
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(filePath, blob, {
-          cacheControl: '3600',
-          upsert: true,
-          contentType: blob.type,
-        });
-
-      if (uploadError) {
-        console.error('Error al subir imagen:', uploadError.message);
-        Alert.alert('Error', 'No se pudo subir la imagen');
-        setLoadingAvatar(false);
-        return;
-      }
-
-      const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(filePath);
-      const publicUrl = urlData.publicUrl;
-      setAvatarUrl(publicUrl);
-
-      const { error: updateError } = await supabase
-        .from('users')
-        .update({ avatar_url: publicUrl })
-        .eq('id', session.user.id);
-
-      if (updateError) {
-        console.error('Error al actualizar avatar en perfil:', updateError.message);
-        Alert.alert('Error', 'No se pudo actualizar la imagen de perfil');
-      }
-    } catch (e) {
-      console.error('Error inesperado:', e);
-      Alert.alert('Error', 'Ocurrió un error inesperado al seleccionar la imagen');
-    } finally {
-      setLoadingAvatar(false);
-    }
-  };
-
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
@@ -187,15 +108,12 @@ const EditProfile = ({ navigation }: any) => {
 
       <Text style={styles.title}>Edit profile</Text>
 
-      <TouchableOpacity style={styles.avatarContainer} onPress={handleImagePick} disabled={loadingAvatar}>
+      <View style={styles.avatarContainer}>
         <Image
-          source={avatarUrl ? { uri: avatarUrl } : require('../assets/avatar.jpg')}
+          source={require('../assets/avatar.jpg')}
           style={styles.avatar}
         />
-        <View style={styles.editIcon}>
-          <MaterialIcons name={loadingAvatar ? 'hourglass-top' : 'edit'} size={18} color="#fff" />
-        </View>
-      </TouchableOpacity>
+      </View>
 
       <TextInput
         placeholder="Name"
@@ -280,14 +198,6 @@ const styles = StyleSheet.create({
     width: 90,
     height: 90,
     borderRadius: 45,
-  },
-  editIcon: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    backgroundColor: '#e0a43c',
-    borderRadius: 12,
-    padding: 4,
   },
   input: {
     width: '100%',

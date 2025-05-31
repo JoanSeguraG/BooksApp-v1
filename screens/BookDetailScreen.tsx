@@ -1,3 +1,5 @@
+// ✅ Updated BookDetailScreen.tsx with fixed 'Comprar' button and black background
+
 import React, { useEffect, useState } from 'react';
 import {
   View,
@@ -97,9 +99,7 @@ export default function BookDetailScreen() {
     }
 
     const query = encodeURIComponent(volume.title);
-    const url = `https://www.amazon.es/s?k=${query}&__mk_es_ES=ÅMÅŽÕÑ&crid=32RGVHWDWHEFW&sprefix=horror+fiction%2Caps%2C77&ref=nb_sb_noss_1`;
-
-    console.log('Abriendo Amazon con búsqueda:', url);
+    const url = `https://www.amazon.es/s?k=${query}`;
 
     const supported = await Linking.canOpenURL(url);
     if (supported) {
@@ -116,7 +116,7 @@ export default function BookDetailScreen() {
         onPress={() => navigation.goBack()}
         activeOpacity={0.7}
       >
-        <Ionicons name="arrow-back" size={28} color="#4E5D78" />
+        <Ionicons name="arrow-back" size={28} color="#FFA726" />
       </TouchableOpacity>
 
       <Image
@@ -131,16 +131,16 @@ export default function BookDetailScreen() {
         <Ionicons
           name={isFavorite ? 'heart' : 'heart-outline'}
           size={24}
-          color="#fff"
+          color="#000"
         />
         <Text style={styles.buttonText}>
           {isFavorite ? 'Quitar de favoritos' : 'Añadir a favoritos'}
         </Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.buyButton} onPress={handleBuyPress}>
-        <Ionicons name="cart" size={24} color="#fff" />
-        <Text style={styles.buttonText}>Buy Now</Text>
+      <TouchableOpacity style={styles.amazonButton} onPress={handleBuyPress}>
+        <Ionicons name="cart" size={24} color="#000" />
+        <Text style={styles.amazonButtonText}>Comprar</Text>
       </TouchableOpacity>
     </ScrollView>
   );
@@ -150,6 +150,8 @@ const styles = StyleSheet.create({
   container: {
     padding: 20,
     alignItems: 'center',
+    backgroundColor: '#000',
+    flexGrow: 1,
   },
   backButton: {
     alignSelf: 'flex-start',
@@ -166,36 +168,46 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 10,
     textAlign: 'center',
+    color: '#FFA726',
   },
   authors: {
     fontSize: 16,
     fontStyle: 'italic',
     marginBottom: 10,
+    color: '#ccc',
   },
   description: {
     fontSize: 14,
     textAlign: 'justify',
     marginBottom: 20,
+    color: '#eee',
   },
   button: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#4E5D78',
+    backgroundColor: '#FFA726',
     padding: 10,
     borderRadius: 8,
     marginTop: 10,
   },
-  buyButton: {
+  amazonButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#2B8A3E',
+    backgroundColor: '#4DA6FF' ,
     padding: 10,
     borderRadius: 8,
     marginTop: 10,
   },
   buttonText: {
-    color: '#fff',
+    color: '#000',
     marginLeft: 8,
     fontSize: 16,
+    fontWeight: 'bold',
+  },
+  amazonButtonText: {
+    color: '#000',
+    marginLeft: 8,
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });

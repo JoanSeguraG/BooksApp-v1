@@ -40,7 +40,7 @@ export default function NewHomeScreen() {
         {books.map((book) => {
           const volume = book.volumeInfo;
           return (
-    <TouchableOpacity
+            <TouchableOpacity
               key={book.id}
               style={styles.bookCard}
               onPress={() => navigation.navigate('BookDetail', { book })}
@@ -63,13 +63,13 @@ export default function NewHomeScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: '#000' }}>
       <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.topBar}>
-        <Text style={styles.header}>Bienvenido, {username} 👋</Text>
-        <Image source={require('../assets/avatar.jpg')} style={styles.avatar} />
-      </View>
-      {renderBookGrid('📚 Recomendados', recommendedBooks)}
-      {renderBookGrid('🆕 Nuevos lanzamientos', newReleases)}
-          </ScrollView>
+        <View style={styles.topBar}>
+          <Text style={styles.header}>Bienvenido, <Text style={styles.highlight}>{username}</Text> 👋</Text>
+          <Image source={require('../assets/avatar.jpg')} style={styles.avatar} />
+        </View>
+        {renderBookGrid('📚 Recomendados', recommendedBooks)}
+        {renderBookGrid('🆕 Nuevos lanzamientos', newReleases)}
+      </ScrollView>
     </View>
   );
 }
@@ -90,6 +90,9 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: 'bold',
     color: '#fff',
+  },
+  highlight: {
+    color: '#FFA726',
   },
   avatar: {
     width: 40,

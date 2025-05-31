@@ -1,20 +1,16 @@
-// ✅ Updated AppNavigator.tsx: Search tab now uses HomeScreen layout
-
 import React from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import Auth from '../components/Auth';
 import SignUp from './SignUp';
 
-import NewHomeScreen from './NewHomeScreen'; // New Inicio page
-import FavoritesScreen from './FavoritesScreen';
-import HomeScreen from './HomeScreen'; // ← now used as Buscar tab
+import HomeScreen from './HomeScreen'; // Used in Buscar tab
 import BookDetailScreen from './BookDetailScreen';
-import Profile from './Profile';
 import EditProfile from './EditProfile';
 import SearchResultsScreen from './SearchResultsScreen';
 import InicioStack from './InicioStack';
 import FavoritesStack from './FavoritesStack';
+import ProfileStack from './ProfileStack';
 
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -39,7 +35,7 @@ function BottomTabs() {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: '#fff',
+        tabBarActiveTintColor: '#FFA726',       // ← 橙色高亮图标
         tabBarInactiveTintColor: '#aaa',
         tabBarStyle: {
           backgroundColor: '#202020',
@@ -57,11 +53,10 @@ function BottomTabs() {
         },
       })}
     >
-     
       <Tab.Screen name="HomeTab" component={InicioStack} options={{ title: 'Inicio' }} />
       <Tab.Screen name="FavoritesTab" component={FavoritesStack} options={{ title: 'Favoritos' }} />
       <Tab.Screen name="SearchTab" component={SearchStack} options={{ title: 'Buscar' }} />
-      <Tab.Screen name="ProfileTab" component={Profile} options={{ title: 'Perfil' }} />
+      <Tab.Screen name="ProfileTab" component={ProfileStack} options={{ title: 'Perfil' }} />
     </Tab.Navigator>
   );
 }

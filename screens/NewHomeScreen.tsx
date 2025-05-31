@@ -67,8 +67,8 @@ export default function NewHomeScreen() {
           <Text style={styles.header}>Bienvenido, <Text style={styles.highlight}>{username}</Text> 👋</Text>
           <Image source={require('../assets/avatar.jpg')} style={styles.avatar} />
         </View>
-        {renderBookGrid('📚 Recomendados', recommendedBooks)}
-        {renderBookGrid('🆕 Nuevos lanzamientos', newReleases)}
+        {renderBookGrid(' Recomendados', recommendedBooks)}
+        {renderBookGrid(' Nuevos lanzamientos', newReleases)}
       </ScrollView>
     </View>
   );

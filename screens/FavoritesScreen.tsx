@@ -12,11 +12,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../lib/supabase';
 import { Book } from '../lib/types';
 import { useAuth } from '../context/AuthContext';
-import { useIsFocused } from '@react-navigation/native';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../lib/types';
 
 export default function FavoritesScreen() {
   const { session } = useAuth();
   const isFocused = useIsFocused();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const [favorites, setFavorites] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
@@ -102,31 +105,33 @@ export default function FavoritesScreen() {
   }
 
   const renderItem = ({ item }: { item: Book }) => (
-    <View style={styles.item}>
-      {item.volumeInfo.imageLinks?.thumbnail ? (
-        <Image
-          source={{ uri: item.volumeInfo.imageLinks.thumbnail }}
-          style={styles.image}
-        />
-      ) : (
-        <View style={styles.placeholderImage}>
-          <Ionicons name="book-outline" size={32} color="#ccc" />
-        </View>
-      )}
-      <View style={styles.info}>
-        <Text numberOfLines={1} style={styles.title}>
-          {item.volumeInfo.title}
-        </Text>
-        {item.volumeInfo.authors && (
-          <Text numberOfLines={1} style={styles.authors}>
-            {item.volumeInfo.authors.join(', ')}
-          </Text>
+    <TouchableOpacity onPress={() => navigation.navigate('BookDetail', { book: item })}>
+      <View style={styles.item}>
+        {item.volumeInfo.imageLinks?.thumbnail ? (
+          <Image
+            source={{ uri: item.volumeInfo.imageLinks.thumbnail }}
+            style={styles.image}
+          />
+        ) : (
+          <View style={styles.placeholderImage}>
+            <Ionicons name="book-outline" size={32} color="#ccc" />
+          </View>
         )}
+        <View style={styles.info}>
+          <Text numberOfLines={1} style={styles.title}>
+            {item.volumeInfo.title}
+          </Text>
+          {item.volumeInfo.authors && (
+            <Text numberOfLines={1} style={styles.authors}>
+              {item.volumeInfo.authors.join(', ')}
+            </Text>
+          )}
+        </View>
+        <TouchableOpacity onPress={() => handleRemove(item.id)}>
+          <Ionicons name="trash-outline" size={24} color="#fff" />
+        </TouchableOpacity>
       </View>
-      <TouchableOpacity onPress={() => handleRemove(item.id)}>
-        <Ionicons name="trash-outline" size={24} color="#fff" />
-      </TouchableOpacity>
-    </View>
+    </TouchableOpacity>
   );
 
   return (

@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, Image, TouchableOpacity,
-  ScrollView, StyleSheet, TextInput, Button
+  ScrollView, StyleSheet, TextInput
 } from 'react-native';
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../lib/types';
 import { searchBooks } from '../components/Api';
+import { Ionicons } from '@expo/vector-icons';
 
 type SearchResultsScreenRouteProp = RouteProp<RootStackParamList, 'SearchResults'>;
 type SearchResultsScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'SearchResults'>;
@@ -34,15 +35,21 @@ export default function SearchResultsScreen() {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      
+    <ScrollView style={{ flex: 1, backgroundColor: '#000' }} contentContainerStyle={styles.container}>
+      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+        <Ionicons name="arrow-back" size={24} color="#FFA726" />
+      </TouchableOpacity>
+
       <TextInput
         placeholder="Buscar libros..."
+        placeholderTextColor="#aaa"
         value={query}
         onChangeText={setQuery}
         style={styles.input}
       />
-      <Button title="Buscar" onPress={handleSearch} />
+      <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
+        <Text style={styles.searchButtonText}>Buscar</Text>
+      </TouchableOpacity>
 
       <Text style={styles.title}>Resultados para: "{query}"</Text>
       {books.map((book) => {
@@ -67,19 +74,38 @@ export default function SearchResultsScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    padding: 20
+    padding: 20,
+    paddingBottom: 40
+  },
+  backButton: {
+    marginBottom: 10,
+    alignSelf: 'flex-start'
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: '#FFA726',
     padding: 8,
     marginBottom: 10,
-    borderRadius: 6
+    borderRadius: 6,
+    color: '#fff'
+  },
+  searchButton: {
+    backgroundColor: '#FFA726',
+    paddingVertical: 10,
+    borderRadius: 6,
+    alignItems: 'center',
+    marginBottom: 20
+  },
+  searchButtonText: {
+    color: '#000',
+    fontWeight: 'bold',
+    fontSize: 16
   },
   title: {
     fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 15
+    marginBottom: 15,
+    color: '#fff'
   },
   bookItem: {
     marginBottom: 15,
@@ -94,6 +120,7 @@ const styles = StyleSheet.create({
   },
   bookTitle: {
     fontSize: 16,
-    flex: 1
+    flex: 1,
+    color: '#fff'
   }
 });

@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import {
-  View, Text, Image, StyleSheet, Button, Alert,
+  View, Text, Image, StyleSheet, Alert,
   TextInput, TouchableOpacity, ScrollView
 } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -83,20 +83,25 @@ export default function HomeScreen() {
   };
 
   return (
-    <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.container}>
+    <ScrollView style={{ flex: 1, backgroundColor: '#000' }} contentContainerStyle={styles.container}>
       <Text style={styles.greeting}>¡Hola, {username}!</Text>
 
       <TextInput
         placeholder="Buscar libros..."
+        placeholderTextColor="#aaa"
         value={query}
         onChangeText={setQuery}
         style={styles.input}
       />
-      <Button title="Buscar" onPress={handleSearch} />
+      <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
+        <Text style={styles.searchButtonText}>Buscar</Text>
+      </TouchableOpacity>
 
       {Object.entries(booksByCategory).map(([title, items]) => (
         <View key={title} style={{ marginTop: 20 }}>
-          <Text style={styles.sectionTitle}>{title}</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('SearchResults', { query: title })}>
+            <Text style={styles.sectionTitle}>{title}</Text>
+          </TouchableOpacity>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             {items.map((item) => {
               const volume = item.volumeInfo;
@@ -117,7 +122,6 @@ export default function HomeScreen() {
           </ScrollView>
         </View>
       ))}
-
     </ScrollView>
   );
 }
@@ -125,24 +129,39 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     padding: 20,
-    paddingBottom: 60
+    paddingBottom: 60,
   },
   greeting: {
     fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 20
+    marginBottom: 20,
+    color: '#fff'
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: '#FFA726',
     padding: 8,
     marginBottom: 10,
-    borderRadius: 6
+    borderRadius: 6,
+    color: '#fff'
+  },
+  searchButton: {
+    backgroundColor: '#FFA726',
+    paddingVertical: 10,
+    borderRadius: 6,
+    alignItems: 'center',
+    marginBottom: 20
+  },
+  searchButtonText: {
+    color: '#000',
+    fontWeight: 'bold',
+    fontSize: 16
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginVertical: 10
+    marginVertical: 10,
+    color: '#FFA726'
   },
   bookItem: {
     marginRight: 12,
@@ -155,6 +174,7 @@ const styles = StyleSheet.create({
   },
   bookTitle: {
     fontSize: 12,
-    marginTop: 5
+    marginTop: 5,
+    color: '#fff'
   }
 });

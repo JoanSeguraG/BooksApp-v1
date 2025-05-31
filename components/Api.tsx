@@ -23,7 +23,8 @@ let cachedAuthors: Author[] = [];
 
 export async function searchBooks(query: string): Promise<Book[]> {
   try {
-    const response = await fetch(`${API_URL}${encodeURIComponent(query)}`);
+    const response = await fetch(`${API_URL}${encodeURIComponent(query)}&maxResults=20`);
+
     const data = await response.json();
     const items = data.items || [];
 

@@ -13,6 +13,7 @@ import BookDetailScreen from './BookDetailScreen';
 import Profile from './Profile';
 import EditProfile from './EditProfile';
 import SearchResultsScreen from './SearchResultsScreen';
+import InicioStack from './InicioStack';
 
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -55,7 +56,8 @@ function BottomTabs() {
         },
       })}
     >
-      <Tab.Screen name="HomeTab" component={NewHomeScreen} options={{ title: 'Inicio' }} />
+     
+      <Tab.Screen name="HomeTab" component={InicioStack} options={{ title: 'Inicio' }} />
       <Tab.Screen name="FavoritesTab" component={FavoritesScreen} options={{ title: 'Favoritos' }} />
       <Tab.Screen name="SearchTab" component={SearchStack} options={{ title: 'Buscar' }} />
       <Tab.Screen name="ProfileTab" component={Profile} options={{ title: 'Perfil' }} />

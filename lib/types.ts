@@ -2,7 +2,7 @@
 export type RootStackParamList = {
     Home: undefined;
     SearchResults: { query: string };
-    BookDetail: { book: Book }; // Usamos el tipo Book aquí
+    BookDetail: { book: any }; // Usamos el tipo Book aquí
     Favorites: undefined;
     Profile: { refresh?: boolean } | undefined;
     EditProfile: undefined;

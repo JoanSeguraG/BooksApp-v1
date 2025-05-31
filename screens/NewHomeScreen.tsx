@@ -43,7 +43,7 @@ export default function NewHomeScreen() {
     <TouchableOpacity
               key={book.id}
               style={styles.bookCard}
-              onPress={() => navigation.navigate('BookDetail', { book: volume })}
+              onPress={() => navigation.navigate('BookDetail', { book })}
             >
               <Image
                 source={{ uri: volume.imageLinks?.thumbnail }}

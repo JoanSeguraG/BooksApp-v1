@@ -41,7 +41,7 @@ npx expo start
 
 ## 🧪 Estado del proyecto
 ✅ Implementación completa del diseño y funcionalidades básicas.
-🚧 Se recomienda probar la aplicación en dispositivo físico.
+🚧 Se recomienda probar la aplicación en dispositivo Adroid.
 
 
 ---

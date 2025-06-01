@@ -18,8 +18,8 @@ export default function NewHomeScreen() {
     const fetchData = async () => {
       const rec = await searchBooks('best seller');
       const recent = await searchBooks('new release');
-      setRecommendedBooks(rec.slice(0, 12));
-      setNewReleases(recent.slice(0, 12));
+      setRecommendedBooks(rec.slice(0, 15));
+      setNewReleases(recent.slice(0, 15));
 
       const { data: sessionData } = await supabase.auth.getSession();
       const user = sessionData?.session?.user;

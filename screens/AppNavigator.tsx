@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import Auth from '../components/Auth';
 import SignUp from './SignUp';
 
-import HomeScreen from './HomeScreen'; // Used in Buscar tab
+import HomeScreen from './HomeScreen'; 
 import BookDetailScreen from './BookDetailScreen';
 import EditProfile from './EditProfile';
 import SearchResultsScreen from './SearchResultsScreen';
@@ -35,7 +35,7 @@ function BottomTabs() {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: '#FFA726',       // ← 橙色高亮图标
+        tabBarActiveTintColor: '#FFA726',       
         tabBarInactiveTintColor: '#aaa',
         tabBarStyle: {
           backgroundColor: '#202020',

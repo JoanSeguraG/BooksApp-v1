@@ -1,15 +1,15 @@
-// Definición de tipos para la navegación
+
 export type RootStackParamList = {
     Home: undefined;
     SearchResults: { query: string };
-    BookDetail: { book: any }; // Usamos el tipo Book aquí
+    BookDetail: { book: any }; 
     Favorites: undefined;
     Profile: { refresh?: boolean } | undefined;
     EditProfile: undefined;
     Auth: undefined;
   };
   
-  // Definición del tipo Book
+  
   export interface VolumeInfo {
     title: string;
     authors: string[];

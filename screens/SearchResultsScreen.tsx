@@ -171,13 +171,9 @@ const styles = StyleSheet.create({
     borderColor: '#FFA726',
     borderRadius: 6,
     marginBottom: 15,
-    backgroundColor: '#333',
-    justifyContent: 'center',
-    height: 45,
+    backgroundColor: '#222'
   },
   picker: {
-    color: '#FFA726',
-    backgroundColor: '#333',
-    height: 45,
-  },
+     color: '#fff'
+  }
 });

@@ -9,6 +9,8 @@ export interface Book {
     imageLinks?: {
       thumbnail: string;
     };
+    averageRating?: number;
+    ratingsCount?: number;
   };
 }
 
@@ -48,6 +50,8 @@ export async function searchBooks(query: string, author = '', language = ''): Pr
               thumbnail: item.volumeInfo.imageLinks.thumbnail.replace(/^http:\/\//, 'https://'),
             }
           : undefined,
+        averageRating: item.volumeInfo.averageRating,   // ✅ Añadido
+        ratingsCount: item.volumeInfo.ratingsCount,     // ✅ Añadido
       },
     }));
 

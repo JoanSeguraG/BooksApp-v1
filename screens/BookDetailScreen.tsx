@@ -126,24 +126,24 @@ export default function BookDetailScreen() {
       <Text style={styles.authors}>{volume.authors?.join(', ')}</Text>
 
       {/* Calificación global con estrellas */}
-      <View style={styles.ratingContainer}>
-        <AirbnbRating
-          count={5}
-          defaultRating={volume.averageRating ?? 0}
-          size={20}
-          isDisabled={true}
-          showRating={false}
-          selectedColor="#FFD700"
-          starContainerStyle={{ alignSelf: 'center' }}
-        />
-        {volume.averageRating ? (
+      {volume.averageRating ? (
+        <View style={styles.ratingContainer}>
+          <AirbnbRating
+            count={5}
+            defaultRating={volume.averageRating}
+            size={20}
+            isDisabled={true}
+            showRating={false}
+            selectedColor="#FFD700"
+            starContainerStyle={{ alignSelf: 'center' }}
+          />
           <Text style={styles.ratingText}>
             {volume.averageRating.toFixed(1)} ({volume.ratingsCount ?? 0} votos)
           </Text>
-        ) : (
-          <Text style={styles.noRatingText}>Sin calificación disponible</Text>
-        )}
-      </View>
+        </View>
+      ) : (
+        <Text style={styles.noRatingText}>Sin calificación disponible</Text>
+      )}
 
       <Text style={styles.description}>{volume.description}</Text>
 
@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
   noRatingText: {
     fontSize: 12,
     color: '#666',
-    marginTop: 4,
+    marginBottom: 16,
   },
   description: {
     fontSize: 14,

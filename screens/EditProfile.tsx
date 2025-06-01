@@ -106,7 +106,7 @@ const EditProfile = ({ navigation }: any) => {
         <Ionicons name="arrow-back" size={28} color="#e0a43c" />
       </TouchableOpacity>
 
-      <Text style={styles.title}>Edit profile</Text>
+      <Text style={styles.title}>Editar perfil</Text>
 
       <View style={styles.avatarContainer}>
         <Image
@@ -116,14 +116,14 @@ const EditProfile = ({ navigation }: any) => {
       </View>
 
       <TextInput
-        placeholder="Name"
+        placeholder="Nombre"
         placeholderTextColor="#aaa"
         value={username}
         onChangeText={setUsername}
         style={styles.input}
       />
       <TextInput
-        placeholder="Phone number"
+        placeholder="Teléfono"
         placeholderTextColor="#aaa"
         value={telefono}
         onChangeText={setTelefono}
@@ -132,7 +132,7 @@ const EditProfile = ({ navigation }: any) => {
       />
       <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.input}>
         <Text style={{ color: birthDate ? '#fff' : '#aaa' }}>
-          {birthDate ? birthDate.toLocaleDateString() : 'Birth date'}
+          {birthDate ? birthDate.toLocaleDateString() : 'Fecha de nacimiento'}
         </Text>
       </TouchableOpacity>
       {showDatePicker && (
@@ -145,7 +145,7 @@ const EditProfile = ({ navigation }: any) => {
         />
       )}
       <TextInput
-        placeholder="Description"
+        placeholder="Descripción"
         placeholderTextColor="#aaa"
         value={description}
         onChangeText={setDescription}
@@ -153,7 +153,7 @@ const EditProfile = ({ navigation }: any) => {
         multiline
       />
       <TextInput
-        placeholder="Location"
+        placeholder="Ubicación"
         placeholderTextColor="#aaa"
         value={location}
         onChangeText={setLocation}

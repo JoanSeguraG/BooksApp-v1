@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Alert } from 'react-native';
+import { View, Text, StyleSheet, Alert, Image, TouchableOpacity } from 'react-native';
 import { Input, Button } from '@rneui/themed';
-import { supabase } from '../lib/supabase'; // Asegúrate de que esta ruta sea correcta
+import { Ionicons } from '@expo/vector-icons';
+import { supabase } from '../lib/supabase';
 import { useNavigation } from '@react-navigation/native';
 
 export default function SignUp() {
-  console.log('SignUp component rendered');
-  
   const navigation = useNavigation();
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -16,76 +15,80 @@ export default function SignUp() {
   const [errorMsg, setErrorMsg] = useState('');
 
   const handleSignUp = async () => {
-    setErrorMsg(''); // Resetear el mensaje de error
-  
-    // Validación de campos
+    setErrorMsg('');
+
     if (!username || !email || !password || !repeatPassword) {
       setErrorMsg('Todos los campos son obligatorios.');
       return;
     }
+
     if (password !== repeatPassword) {
       setErrorMsg('Las contraseñas no coinciden.');
       return;
     }
-  
+
     setLoading(true);
-  
+
     try {
-      // Intentar registrar al usuario
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: { username } // Almacenamos el 'username' en los metadatos del usuario
+          data: { username }
         }
       });
-  
+
       if (error) {
-        setErrorMsg(error.message); // Mostrar mensaje de error si lo hay
+        setErrorMsg(error.message);
       } else {
-        // Al registrarse con éxito, guardar la información en la tabla 'users'
         const { user } = data;
-  
-        console.log("Usuario registrado:", user); // Verifica si el usuario fue creado correctamente
-  
-        // Insertar los datos del usuario en la tabla 'users' en Supabase
+
         const { error: dbError } = await supabase
           .from('users')
           .insert([
             {
-              id: user?.id, // Relacionamos al usuario con su id de autenticación
-              username: username,
-              email: email
+              id: user?.id,
+              username,
+              email
             }
           ]);
-  
+
         if (dbError) {
           setErrorMsg('Error al guardar los datos en la base de datos.');
-          console.error(dbError); // Verifica si ocurre un error al insertar
+          console.error(dbError);
         } else {
           Alert.alert('Cuenta creada', 'Tu cuenta ha sido creada con éxito.');
         }
       }
     } catch (error) {
       setErrorMsg('Error al registrar la cuenta');
-      console.error(error); // Verifica cualquier error general
+      console.error(error);
     } finally {
       setLoading(false);
     }
-  };  
-
-  
+  };
 
   return (
     <View style={styles.container}>
+      {/* Botón volver atrás */}
+      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+        <Ionicons name="arrow-back" size={26} color="#e0a43c" />
+      </TouchableOpacity>
+
       <Text style={styles.title}>Crear cuenta</Text>
 
-      {/* Campos de entrada */}
+      {/* Logo */}
+      <Image source={require('../assets/logo.png')} style={styles.logo} />
+
+      {/* Inputs con texto blanco */}
       <Input
         label="Username"
         value={username}
         onChangeText={setUsername}
         placeholder="Tu nombre de usuario"
+        placeholderTextColor="#aaa"
+        inputStyle={styles.inputText}
+        labelStyle={styles.label}
       />
       <Input
         label="Email"
@@ -93,6 +96,9 @@ export default function SignUp() {
         onChangeText={setEmail}
         placeholder="email@ejemplo.com"
         autoCapitalize="none"
+        placeholderTextColor="#aaa"
+        inputStyle={styles.inputText}
+        labelStyle={styles.label}
       />
       <Input
         label="Contraseña"
@@ -100,6 +106,9 @@ export default function SignUp() {
         onChangeText={setPassword}
         secureTextEntry
         placeholder="Contraseña"
+        placeholderTextColor="#aaa"
+        inputStyle={styles.inputText}
+        labelStyle={styles.label}
       />
       <Input
         label="Repetir contraseña"
@@ -107,18 +116,21 @@ export default function SignUp() {
         onChangeText={setRepeatPassword}
         secureTextEntry
         placeholder="Repetir contraseña"
+        placeholderTextColor="#aaa"
+        inputStyle={styles.inputText}
+        labelStyle={styles.label}
       />
 
-      {/* Mostrar error si hay alguno */}
       {errorMsg ? <Text style={styles.errorText}>{errorMsg}</Text> : null}
 
-      {/* Botón de registro */}
       <Button
         title="Sign Up"
         onPress={handleSignUp}
         disabled={loading}
         loading={loading}
         containerStyle={styles.button}
+        buttonStyle={{ backgroundColor: '#e0a43c' }}
+        titleStyle={{ fontWeight: 'bold' }}
       />
     </View>
   );
@@ -128,20 +140,41 @@ const styles = StyleSheet.create({
   container: {
     padding: 24,
     flex: 1,
-    justifyContent: 'center'
+    justifyContent: 'center',
+    backgroundColor: '#111',
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
+    marginBottom: 12,
+    alignSelf: 'center',
+    color: '#fff',
+  },
+  logo: {
+    width: 90,
+    height: 90,
+    alignSelf: 'center',
     marginBottom: 24,
-    alignSelf: 'center'
+    resizeMode: 'contain',
+  },
+  backButton: {
+    position: 'absolute',
+    top: 50,
+    left: 20,
+    zIndex: 1,
+  },
+  inputText: {
+    color: '#fff',
+  },
+  label: {
+    color: '#fff',
   },
   errorText: {
     color: 'red',
     marginBottom: 12,
-    marginLeft: 10
+    marginLeft: 10,
   },
   button: {
-    marginTop: 12
-  }
+    marginTop: 12,
+  },
 });

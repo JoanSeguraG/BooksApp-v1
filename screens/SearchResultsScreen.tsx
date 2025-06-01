@@ -3,10 +3,11 @@ import {
   View, Text, Image, TouchableOpacity,
   ScrollView, StyleSheet, TextInput
 } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../lib/types';
-import { searchBooks } from '../components/Api';
+import { searchBooks, getAuthors, Author } from '../components/Api';
 import { Ionicons } from '@expo/vector-icons';
 
 type SearchResultsScreenRouteProp = RouteProp<RootStackParamList, 'SearchResults'>;
@@ -19,14 +20,19 @@ export default function SearchResultsScreen() {
   const initialQuery = route?.params?.query || '';
   const [query, setQuery] = useState(initialQuery);
   const [books, setBooks] = useState<any[]>([]);
+  const [author, setAuthor] = useState('');
+  const [language, setLanguage] = useState('');
+  const [authorsList, setAuthorsList] = useState<Author[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
-      const results = await searchBooks(query);
+      const results = await searchBooks(query, author, language);
       setBooks(results);
+      const authors = await getAuthors();
+      setAuthorsList(authors);
     };
     fetchData();
-  }, [query]);
+  }, [query, author, language]);
 
   const handleSearch = () => {
     if (query.trim() !== '') {
@@ -50,6 +56,37 @@ export default function SearchResultsScreen() {
       <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
         <Text style={styles.searchButtonText}>Buscar</Text>
       </TouchableOpacity>
+
+      <Text style={styles.filterLabel}>Filtrar por autor:</Text>
+      <View style={styles.pickerContainer}>
+        <Picker
+          selectedValue={author}
+          style={styles.picker}
+          onValueChange={(value) => setAuthor(value)}
+        >
+          <Picker.Item label="Todos los autores" value="" />
+          {authorsList.map((a) => (
+            <Picker.Item key={a.id} label={a.name} value={a.name} />
+          ))}
+        </Picker>
+      </View>
+
+      <Text style={styles.filterLabel}>Filtrar por idioma:</Text>
+      <View style={styles.pickerContainer}>
+        <Picker
+          selectedValue={language}
+          style={styles.picker}
+          onValueChange={(value) => setLanguage(value)}
+        >
+          <Picker.Item label="Todos los idiomas" value="" />
+          <Picker.Item label="Español" value="es" />
+          <Picker.Item label="Inglés" value="en" />
+          <Picker.Item label="Francés" value="fr" />
+          <Picker.Item label="Alemán" value="de" />
+          <Picker.Item label="Italiano" value="it" />
+          <Picker.Item label="Portugués" value="pt" />
+        </Picker>
+      </View>
 
       <Text style={styles.title}>Resultados para: "{query}"</Text>
       {books.map((book) => {
@@ -121,6 +158,22 @@ const styles = StyleSheet.create({
   bookTitle: {
     fontSize: 16,
     flex: 1,
+    color: '#fff'
+  },
+  filterLabel: {
+    color: '#fff',
+    fontSize: 16,
+    marginTop: 10,
+    marginBottom: 4
+  },
+  pickerContainer: {
+    borderWidth: 1,
+    borderColor: '#FFA726',
+    borderRadius: 6,
+    marginBottom: 15,
+    backgroundColor: '#222'
+  },
+  picker: {
     color: '#fff'
   }
 });

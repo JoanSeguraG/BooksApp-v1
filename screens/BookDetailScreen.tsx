@@ -1,5 +1,3 @@
-// ✅ Updated BookDetailScreen.tsx with fixed 'Comprar' button and black background
-
 import React, { useEffect, useState } from 'react';
 import {
   View,
@@ -16,6 +14,7 @@ import { RootStackParamList } from '../lib/types';
 import { supabase } from '../lib/supabase';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
+import { AirbnbRating } from 'react-native-ratings';
 
 type BookDetailRouteProp = RouteProp<RootStackParamList, 'BookDetail'>;
 
@@ -125,6 +124,27 @@ export default function BookDetailScreen() {
       />
       <Text style={styles.title}>{volume.title}</Text>
       <Text style={styles.authors}>{volume.authors?.join(', ')}</Text>
+
+      {/* Calificación global con estrellas */}
+      <View style={styles.ratingContainer}>
+        <AirbnbRating
+          count={5}
+          defaultRating={volume.averageRating ?? 0}
+          size={20}
+          isDisabled={true}
+          showRating={false}
+          selectedColor="#FFD700"
+          starContainerStyle={{ alignSelf: 'center' }}
+        />
+        {volume.averageRating ? (
+          <Text style={styles.ratingText}>
+            {volume.averageRating.toFixed(1)} ({volume.ratingsCount ?? 0} votos)
+          </Text>
+        ) : (
+          <Text style={styles.noRatingText}>Sin calificación disponible</Text>
+        )}
+      </View>
+
       <Text style={styles.description}>{volume.description}</Text>
 
       <TouchableOpacity style={styles.button} onPress={toggleFavorite}>
@@ -176,6 +196,20 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     color: '#ccc',
   },
+  ratingContainer: {
+    marginBottom: 16,
+    alignItems: 'center',
+  },
+  ratingText: {
+    fontSize: 12,
+    color: '#ccc',
+    marginTop: 4,
+  },
+  noRatingText: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 4,
+  },
   description: {
     fontSize: 14,
     textAlign: 'justify',
@@ -193,7 +227,7 @@ const styles = StyleSheet.create({
   amazonButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#4DA6FF' ,
+    backgroundColor: '#4DA6FF',
     padding: 10,
     borderRadius: 8,
     marginTop: 10,

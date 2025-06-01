@@ -1,5 +1,3 @@
-// api/Api.tsx
-
 const API_URL = 'https://www.googleapis.com/books/v1/volumes?q=';
 
 export interface Book {
@@ -21,10 +19,21 @@ export interface Author {
 
 let cachedAuthors: Author[] = [];
 
-export async function searchBooks(query: string): Promise<Book[]> {
+export async function searchBooks(query: string, author = '', language = ''): Promise<Book[]> {
   try {
-    const response = await fetch(`${API_URL}${encodeURIComponent(query)}&maxResults=20`);
+    let url = `${API_URL}${encodeURIComponent(query)}`;
 
+    if (author) {
+      url += `+inauthor:${encodeURIComponent(author)}`;
+    }
+
+    url += `&maxResults=20`;
+
+    if (language) {
+      url += `&langRestrict=${language}`;
+    }
+
+    const response = await fetch(url);
     const data = await response.json();
     const items = data.items || [];
 
@@ -35,14 +44,13 @@ export async function searchBooks(query: string): Promise<Book[]> {
         authors: item.volumeInfo.authors || [],
         description: item.volumeInfo.description || '',
         imageLinks: item.volumeInfo.imageLinks
-  ? {
-      thumbnail: item.volumeInfo.imageLinks.thumbnail.replace(/^http:\/\//, 'https://')
-    }
-  : undefined,
+          ? {
+              thumbnail: item.volumeInfo.imageLinks.thumbnail.replace(/^http:\/\//, 'https://'),
+            }
+          : undefined,
       },
     }));
 
-    
     const authorSet = new Set<string>();
     books.forEach((book) => {
       (book.volumeInfo.authors || []).forEach((authorName) => {
@@ -61,7 +69,6 @@ export async function searchBooks(query: string): Promise<Book[]> {
     return [];
   }
 }
-
 
 export async function getAuthors(): Promise<Author[]> {
   return cachedAuthors;

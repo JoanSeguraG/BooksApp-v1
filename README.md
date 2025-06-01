@@ -1,6 +1,6 @@
 # 📚 BooksApp
 
-BooksApp es una aplicación móvil desarrollada como parte de la **entrega final** de la asignatura _Aplicacions Web d'Última Generació III _ del CITM – Universitat Politècnica de Catalunya (UPC). La app permite a los usuarios buscar, explorar y guardar libros como favoritos, además de editar su perfil personal.
+BooksApp es una aplicación móvil. La app permite a los usuarios buscar, explorar y guardar libros como favoritos, además de editar su perfil personal.
 
 ## ✨ Funcionalidades principales
 

@@ -1,6 +1,6 @@
-# 📚 BooksApp
+# 📚 Bookie
 
-BooksApp es una aplicación móvil. La app permite a los usuarios buscar, explorar y guardar libros como favoritos, además de editar su perfil personal.
+Bookie es una aplicación móvil. La app permite a los usuarios buscar, explorar y guardar libros como favoritos, además de editar su perfil personal.
 
 ## ✨ Funcionalidades principales
 
